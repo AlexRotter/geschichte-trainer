@@ -1,0 +1,16 @@
+{
+  "name": "Geschichte-Trainer – Quellen, Epochen, Altsteinzeit",
+  "short_name": "Geschichte",
+  "description": "Geschichte üben: Quellen, Epochen, Zeitleiste und Altsteinzeit – offline.",
+  "lang": "de",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#eef4ff",
+  "theme_color": "#2a6df4",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "apple-touch-icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
