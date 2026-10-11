@@ -130,6 +130,31 @@ textarea:focus{outline:none;border-color:var(--blue)}
 .opt.used{opacity:.4}
 .flip .mid{font-size:1.1rem;font-weight:600;line-height:1.4}
 ul{margin:4px 0 10px;padding-left:22px}
+.chcard{padding:14px}
+.chhead{display:flex;gap:12px;align-items:flex-start;margin-bottom:4px}
+.chic{font-size:1.8rem;line-height:1}
+.chcard .row .btn{flex:1;min-width:0;padding:10px 6px}
+.sortl{display:flex;flex-direction:column;gap:8px}
+.srow{border:2px solid var(--line);border-radius:12px;padding:10px;background:#fff}
+.srow.ok{border-color:var(--ok);background:var(--ok-bg)}
+.srow.bad{border-color:var(--bad);background:var(--bad-bg)}
+.sitem{font-weight:700;margin-bottom:6px}
+.scats{display:flex;flex-wrap:wrap;gap:6px}
+.sc{border:2px solid var(--line);background:#f7f9fd;border-radius:999px;padding:6px 11px;font:inherit;font-size:.86rem;font-weight:600;color:var(--ink);cursor:pointer;touch-action:manipulation}
+.sc.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.sfb{font-size:.85rem;margin-top:4px}
+.gtext{font-size:1.05rem;line-height:2.3}
+.gap{font:inherit;font-size:1rem;padding:4px 6px;border:2px solid var(--line);border-radius:8px;background:#fff;max-width:100%}
+input.gap{width:9.5em}input.gap.num{width:3.2em;text-align:center}
+.gap.ok{border-color:var(--ok);background:var(--ok-bg);color:#166b3b}
+.gap.bad{border-color:var(--bad);background:var(--bad-bg);color:#9b2020}
+.corr{display:inline-block;margin-left:4px;font-weight:700;color:var(--ok);font-size:.95rem}
+.pts{float:right;font-weight:700}
+.okc{color:var(--ok);font-weight:800}.badc{color:var(--bad);font-weight:800}
+.trow{padding:6px 0;border-bottom:1px solid var(--line);font-size:.92rem}
+.tlq{margin-bottom:8px;font-size:1.05rem}
+.learn h2{margin-top:18px}
+.prompt{line-height:1.35}
 </style>
 </head>
 <body>
@@ -137,230 +162,199 @@ ul{margin:4px 0 10px;padding-left:22px}
 <div class="toast" id="toast"></div>
 <script>
 /* =========================================================
-   INHALTE – aus den Heftseiten: „Woher unser Wissen über Geschichte stammt",
-   „Geschichtliche Quellen", Epochen-Zeitleiste, „Leben in der Altsteinzeit",
-   „Wohnen in der Altsteinzeit" (Westermann)
+   INHALTE nach Kapiteln – aus den Heftseiten (Westermann):
+   1 Geschichtliche Quellen · 2 Zeit und Epochen ·
+   3 Leben in der Altsteinzeit · 4 Wohnen in der Altsteinzeit
    ========================================================= */
-const QT = {S:'Schriftliche Quellen',M:'Mündliche Quellen',B:'Bildquellen',Sa:'Sachquellen'};
-const QTX = {S:'etwas Geschriebenes',M:'etwas Erzähltes / Gesprochenes',B:'ein Bild',Sa:'ein Gegenstand, Gebäude oder Überrest'};
-// Begriff, Art, [auch vertretbar], Hinweis
-const QUELLEN = [
- ['Kutsche','Sa'],['Tagebücher','S'],['Sagen','M',['S'],'Sagen wurden zuerst mündlich weitererzählt und erst später aufgeschrieben.'],
- ['Urkunden','S'],['Erzählung','M'],['Möbel','Sa'],['Verträge','S'],['Zeichnungen','B'],
- ['Grabsteine','Sa',['S'],'Ein Grabstein ist ein Gegenstand (Sachquelle) – die Inschrift darauf kann man auch als Schriftquelle sehen.'],
- ['Knochenreste','Sa'],['Erinnerungen','M',['S'],'Erzählte Erinnerungen sind mündlich – wer sie aufschreibt, macht eine Schriftquelle daraus.'],
- ['Ruinen','Sa'],['Münzen','Sa'],['Höhlenmalerei','B'],
- ['Inschriften','S',['Sa'],'Eine Inschrift ist Geschriebenes (Schriftquelle), steht aber auf einem Gegenstand.'],
- ['Mythen','M',['S'],'Mythen wurden lange mündlich weitererzählt und erst später aufgeschrieben.'],
- ['Briefe','S'],['Lanzen','Sa'],['Gesetze','S'],['Zeitung','S'],['Fotos','B'],['Testament','S'],['Uniform','Sa'],
- ['Interview','M'],['Tonbandaufzeichnungen','M'],['Schiffswrack','Sa'],['Gefäße','Sa'],
- ['Karten','B',['S'],'Karten sind gezeichnet (Bildquelle), enthalten aber oft auch Schrift.'],
- ['Trachten','Sa'],['Pistolen','Sa'],
- // aus „Woher unser Wissen ... stammt"
- ['Legenden','M',['S'],'Legenden wurden mündlich überliefert.'],['Gemälde','B'],['Gebäude','Sa'],['Fossilien','Sa']
-].map((a,i)=>({id:'q'+i,n:a[0],t:a[1],alt:a[2]||[],hint:a[3]||''}));
+const QT={S:{n:'Schriftliche Quellen',s:'Schrift',d:'etwas Geschriebenes'},M:{n:'Mündliche Quellen',s:'mündlich',d:'etwas Erzähltes oder Gesprochenes'},B:{n:'Bildquellen',s:'Bild',d:'ein Bild'},Sa:{n:'Sachquellen',s:'Sache',d:'ein Gegenstand, Gebäude oder Überrest'}};
+// Begriff, Überkategorie, [auch vertretbar], Hinweis – alle Begriffe vom Arbeitsblatt + Beispiele vom Hefteintrag
+const QUELLEN=[
+ ['Tagebücher','S'],['Urkunden','S'],['Verträge','S'],['Briefe','S'],['Gesetze','S'],['Zeitung','S'],['Testament','S'],
+ ['Inschriften','S',['Sa'],'Eine Inschrift ist Geschriebenes – sie steht aber auf einem Gegenstand.'],
+ ['Sagen','M',['S'],'Sagen wurden zuerst erzählt und erst später aufgeschrieben.'],['Erzählung','M'],
+ ['Erinnerungen','M',['S'],'Erzählte Erinnerungen sind mündlich – aufgeschrieben werden sie zur Schriftquelle.'],
+ ['Mythen','M',['S'],'Mythen wurden lange nur erzählt und erst später aufgeschrieben.'],['Interview','M'],['Tonbandaufzeichnungen','M'],
+ ['Legenden','M',['S'],'Legenden wurden mündlich weitererzählt.'],
+ ['Zeichnungen','B'],['Höhlenmalerei','B'],['Fotos','B'],['Gemälde','B'],['Karten','B',['S'],'Karten sind gezeichnet – sie enthalten aber oft auch Schrift.'],
+ ['Kutsche','Sa'],['Möbel','Sa'],['Grabsteine','Sa',['S'],'Ein Grabstein ist ein Gegenstand – die Inschrift darauf ist Geschriebenes.'],['Knochenreste','Sa'],['Ruinen','Sa'],
+ ['Münzen','Sa'],['Lanzen','Sa'],['Uniform','Sa'],['Schiffswrack','Sa'],['Gefäße','Sa'],['Trachten','Sa'],['Pistolen','Sa'],['Gebäude','Sa'],['Fossilien','Sa']
+].map(a=>({n:a[0],c:a[1],alt:a[2]||[],hint:a[3]||''}));
 
-// Quelle oder Darstellung?
-const DARST = [
- ['Ein Schulbuchtext über die Steinzeit','D','Ein Schulbuch wurde heute geschrieben – es ist eine Darstellung.'],
- ['Ein Jugendsachbuch über die Römer','D','Sachbücher werden später über die Vergangenheit geschrieben – Darstellung.'],
- ['Eine Geschichtsdokumentation im Fernsehen','D','Dokus werden heute gemacht – Darstellung.'],
- ['Die Zeichnung einer Steinzeithöhle auf deinem Arbeitsblatt','D','Sie wurde heute nach archäologischen Funden gezeichnet – Darstellung.'],
- ['Ein Spielfilm über Ritter','D','Filme werden heute gedreht – Darstellung.'],
- ['Ein Faustkeil, der bei einer Ausgrabung gefunden wurde','Q','Er stammt aus der Steinzeit selbst – Sachquelle.'],
- ['Eine römische Münze','Q','Sie stammt aus der Römerzeit – Sachquelle.'],
- ['Eine Höhlenmalerei aus der Steinzeit','Q','Sie wurde in der Steinzeit gemalt – Bildquelle.'],
- ['Ein Brief deines Urgroßvaters','Q','Er stammt aus der damaligen Zeit – Schriftquelle.'],
- ['Ein Foto deiner Großeltern als Kinder','Q','Es stammt aus der damaligen Zeit – Bildquelle.']
-].map((a,i)=>({id:'d'+i,n:a[0],t:a[1],ex:a[2]}));
+const DARST=[
+ ['Schulbuchtext über die Steinzeit','D'],['Jugendsachbuch über die Römer','D'],['Geschichtsdokumentation im Fernsehen','D'],
+ ['Zeichnung einer Steinzeithöhle auf deinem Arbeitsblatt','D'],['Spielfilm über Ritter','D'],['Museumsmodell eines Steinzeitlagers','D'],
+ ['Faustkeil aus einer Ausgrabung','Q'],['Römische Münze','Q'],['Höhlenmalerei aus der Steinzeit','Q'],['Brief deines Urgroßvaters','Q'],
+ ['Foto deiner Großeltern als Kinder','Q'],['Interview mit deiner Oma über früher','Q']
+].map(a=>({n:a[0],c:a[1]}));
 
-// Epochen laut Arbeitsblatt
-const EPO = [
+const EPO=[
  {k:'VG',n:'Vorgeschichte',z:'bis 2000 v. Chr.',von:-99999,bis:-2000,col:'#6cc7c2'},
  {k:'HK',n:'Frühe Hochkulturen',z:'2000 v. Chr. – 500 v. Chr.',von:-2000,bis:-500,col:'#f2e85c'},
  {k:'AN',n:'Antike',z:'500 v. Chr. – 500 n. Chr.',von:-500,bis:500,col:'#c79be0'},
  {k:'MA',n:'Mittelalter',z:'500 n. Chr. – 1500 n. Chr.',von:500,bis:1500,col:'#f08a80'},
  {k:'NZ',n:'Neuzeit',z:'ab 1500 n. Chr.',von:1500,bis:99999,col:'#8fd48f'}
 ];
-const EK = Object.fromEntries(EPO.map(e=>[e.k,e]));
-// Bilder vom Arbeitsblatt (als Beschreibung) + weitere Beispiele
-const EBILD = [
- ['🛖','Eine Hütte aus Fellen und Stangen','VG'],['🧔','Ein Steinzeitmensch mit wildem Haar','VG'],['🦣','Menschen jagen ein Mammut','VG'],
- ['🔺','Die Pyramiden in Ägypten','HK'],['👑','Ein Pharao mit gestreiftem Kopftuch','HK'],['🌾','Ein ägyptischer Bauer erntet mit der Sichel','HK'],
- ['🛡️','Ein römischer Soldat (Legionär) mit Schild und Speer','AN'],['🗼','Ein römischer Wachturm am Limes','AN'],['🏛️','Ein griechischer Tempel mit Säulen','AN'],
- ['⚔️','Ritter kämpfen auf Pferden','MA'],['🏰','Eine Ritterburg','MA'],
- ['🏭','Eine Fabrik mit Förderturm, Schornsteinen und Eisenbahn','NZ'],['📱','Ein Smartphone','NZ']
-].map((a,i)=>({id:'b'+i,ic:a[0],n:a[1],e:a[2]}));
+const EK=Object.fromEntries(EPO.map(e=>[e.k,e]));
+// die Bilder vom Arbeitsblatt (als Beschreibung)
+const EBILD=[
+ ['🛖 Hütte aus Fellen und Stangen','VG'],['🧔 Steinzeitmensch mit wildem Haar','VG'],
+ ['🔺 Pyramiden in Ägypten','HK'],['👑 Pharao mit gestreiftem Kopftuch','HK'],['🌾 Ägyptischer Bauer erntet mit der Sichel','HK'],
+ ['🛡️ Römischer Soldat (Legionär) mit Schild und Speer','AN'],['🗼 Römischer Wachturm am Limes','AN'],
+ ['⚔️ Ritter kämpfen auf Pferden','MA'],['🏭 Fabrik mit Förderturm und Eisenbahn','NZ']
+].map(a=>({n:a[0],c:a[1]}));
+const yTxt=y=>y<0?`${-y} v. Chr.`:`${y} n. Chr.`;
 
-// Daten von der Zeitleiste (v. Chr. = negativ)
-const DATEN = [
- {id:'t333',y:-333,n:'333 v. Chr.',jh:4,ex:'333 v. Chr. besiegte Alexander der Große die Perser bei Issos.'},
- {id:'t1492',y:1492,n:'1492 n. Chr.',jh:15,ex:'1492 erreichte Kolumbus Amerika.'},
- {id:'t14',y:14,n:'14 n. Chr.',jh:1,ex:'14 n. Chr. starb der römische Kaiser Augustus.'},
- {id:'t763',y:-763,n:'763 v. Chr.',jh:8,ex:''},
- {id:'t0',y:0,n:'Christi Geburt',jh:null,ex:'Mit Christi Geburt beginnt unsere Zeitrechnung.'},
- {id:'t500',y:500,n:'500 n. Chr.',jh:5,ex:'Um 500 n. Chr. endet laut Arbeitsblatt die Antike, das Mittelalter beginnt.'},
- {id:'t1500',y:1500,n:'1500 n. Chr.',jh:15,ex:'Um 1500 beginnt die Neuzeit.'},
- {id:'tm500',y:-500,n:'500 v. Chr.',jh:5,ex:'Um 500 v. Chr. beginnt laut Arbeitsblatt die Antike.'},
- {id:'t800',y:800,n:'800 n. Chr.',jh:8,ex:'800 n. Chr. wurde Karl der Große zum Kaiser gekrönt.'},
- {id:'t2026',y:2026,n:'heute (2026)',jh:21,ex:'Wir leben im 21. Jahrhundert.'}
+const MAMMUT=[
+ {k:'m0',teil:'Stoßzähne und Knochen',use:['Schmuck','Schnitzereien','Waffen','Geräte','Nadeln']},
+ {k:'m1',teil:'Fleisch, Leber, Herz, Gehirn, Mark',use:['Nahrung']},
+ {k:'m2',teil:'Fell',use:['Kleidung','Zelte','Riemen','Fußlappen','Bodenbelag']},
+ {k:'m3',teil:'Fett',use:['Körperbemalung','Nahrung (Fett)']},
+ {k:'m4',teil:'Magen, Darm, Blase',use:['getrocknet als Behälter']},
+ {k:'m5',teil:'Därme, Sehnen',use:['Schnüre','Nähgarn','Bogensehnen']}
 ];
-// Jahrhundert-Aufgaben
-const JH = [
- [1492,15],[14,1],[-333,4],[-763,8],[1500,15],[1501,16],[2026,21],[800,8],[1066,11],[-44,1],[-1000,10],[333,4]
-].map(([y,j])=>({id:'j'+y,y,j}));
-const yTxt = y=>y<0?`${-y} v. Chr.`:`${y} n. Chr.`;
-
-// Mammut: Körperteil -> Verwendung
-const MAMMUT = [
- ['Stoßzähne und Knochen','Schmuck, Schnitzereien, Waffen, Geräte, Nadeln'],
- ['Fleisch, Leber, Herz, Gehirn, Mark','Nahrung'],
- ['Fell','Kleidung, Zelte, Riemen, Fußlappen, Bodenbelag'],
- ['Fett','für Körperbemalung und als Nahrung'],
- ['Magen, Darm, Blase','getrocknet als Behälter'],
- ['Därme, Sehnen','Schnüre, Nähgarn, Bogensehnen']
-].map((a,i)=>({id:'m'+i,teil:a[0],use:a[1]}));
-// Einzelne Dinge -> Körperteil
-const MDING = [
- ['Nadeln','m0'],['Waffen','m0'],['Schmuck','m0'],['Schnitzereien','m0'],['Nahrung (Fleisch)','m1'],['Kleidung','m2'],['Zelte','m2'],
- ['Bodenbelag','m2'],['Fußlappen','m2'],['Körperbemalung','m3'],['Behälter','m4'],['Nähgarn','m5'],['Bogensehnen','m5'],['Schnüre','m5']
-].map((a,i)=>({id:'md'+i,n:a[0],m:a[1]}));
-
-// Fundstücke im Grabungsfeld (Anfangsbuchstaben F, H, S, N)
-const GERAET = [
- {id:'gF',l:'F',n:'Faustkeil',acc:['Faustkeil'],use:'Allzweck-Werkzeug aus Stein: schneiden, schaben, hacken, Tiere zerlegen, Felle bearbeiten, graben.'},
- {id:'gH',l:'H',n:'Harpune',acc:['Harpune'],use:'Zum Fischfang – die Widerhaken halten den Fisch fest.'},
- {id:'gS',l:'S',n:'Speerspitze',acc:['Speerspitze','Speer','Speerschleuder','Schaber'],use:'Wird vorne am Speer befestigt – zum Jagen von Tieren.'},
- {id:'gN',l:'N',n:'Nadel',acc:['Nadel','Knochennadel','Nähnadel'],use:'Nadel aus Knochen: Felle zu Kleidung und Zelten zusammennähen (mit Sehnen als Faden).'}
+const GERAET=[
+ {k:'F',n:'Faustkeil',acc:['Faustkeil'],use:'Allzweck-Werkzeug aus Stein: schneiden, schaben, hacken, Tiere zerlegen, Felle bearbeiten'},
+ {k:'H',n:'Harpune',acc:['Harpune'],use:'Fische fangen – die Widerhaken halten den Fisch fest'},
+ {k:'S',n:'Speerschleuder / Speerspitze',acc:['Speerschleuder','Speerspitze','Speer'],use:'Jagd: die Speerschleuder wirft den Speer weiter und kräftiger, die Speerspitze sitzt vorne am Speer'},
+ {k:'N',n:'Nadel (aus Knochen)',acc:['Nadel','Knochennadel','Nähnadel'],use:'Felle zu Kleidung und Zelten zusammennähen – mit Sehnen als Faden'}
 ];
 
-// Richtig / Falsch
-const TF = [
- ['Eine Höhle ist natürlich entstanden.',1,'Höhlen hat die Natur geschaffen, Zelte bauten die Menschen selbst.'],
- ['Zelte konnten abgebaut und an einen neuen Ort mitgenommen werden.',1,'Deshalb waren Zelte praktisch für das Umherziehen.'],
- ['Höhlen gab es überall, auch im flachen Land am Meer.',0,'Höhlen gibt es vor allem im Gebirge – im flachen Land (z. B. Schleswig-Holstein) nicht.'],
- ['Jäger und Sammler blieben ihr ganzes Leben an einem Ort.',0,'Sie zogen den Tierherden und der Nahrung hinterher (Nomaden).'],
- ['Die Zelte bestanden aus Tierfellen über Holzstangen oder Mammutknochen.',1,'Felle schützten vor Wind und Kälte.'],
- ['Das Feuer diente nur zum Kochen.',0,'Feuer gab Wärme, Licht, Schutz vor wilden Tieren – und man konnte damit braten.'],
- ['Die Zeichnungen auf dem Arbeitsblatt „Wohnen in der Altsteinzeit" sind Quellen aus der Steinzeit.',0,'Sie wurden heute nach archäologischen Funden gezeichnet – es sind Darstellungen.'],
- ['Die Menschen der Altsteinzeit betrieben schon Ackerbau.',0,'Ackerbau und Viehzucht kamen erst in der Jungsteinzeit. In der Altsteinzeit jagte und sammelte man.'],
- ['Die Menschen der Altsteinzeit nutzten fast alles vom erlegten Tier.',1,'Fleisch, Fell, Knochen, Sehnen, Därme, Fett – fast nichts wurde weggeworfen.'],
- ['Werkzeuge der Altsteinzeit waren aus Stein, Knochen, Holz und Geweih.',1,'Die Steinzeit ist nach dem wichtigsten Werkzeug-Material benannt: Stein.'],
- ['Ein Schulbuch ist eine geschichtliche Quelle.',0,'Ein Schulbuch ist eine Darstellung – es wurde später über die Vergangenheit geschrieben.'],
- ['Quellen können gefälscht sein.',1,'Deshalb müssen Historiker Quellen genau prüfen.'],
- ['Ein Jahr 0 gibt es nicht.',1,'Auf 1 v. Chr. folgt direkt 1 n. Chr.'],
- ['763 v. Chr. ist früher als 333 v. Chr.',1,'Vor Christus gilt: Je größer die Zahl, desto länger ist es her.'],
- ['Das Jahr 1492 gehört zum 14. Jahrhundert.',0,'1492 gehört zum 15. Jahrhundert (Hunderter + 1).']
-].map((a,i)=>({id:'tf'+i,s:a[0],r:!!a[1],ex:a[2]}));
+// Höhle und Zelt
+const HZ_MERKMAL=[
+ ['ist natürlich entstanden','H'],['wird von den Menschen selbst gebaut','Z'],['besteht aus Tierfellen über Holzstangen oder Mammutknochen','Z'],
+ ['kann abgebaut und mitgenommen werden','Z'],['bleibt immer am selben Ort','H'],['gibt es vor allem im Gebirge','H'],['kann man auch im flachen Land aufstellen','Z'],
+ ['hat eine Feuerstelle für Wärme, Licht und Schutz','B'],['Menschen arbeiten dort zusammen','B'],['bietet festen Schutz vor Wind, Regen und Kälte','H']
+].map(a=>({n:a[0],c:a[1]}));
+const HZ_VN=[
+ ['muss nicht gebaut werden – ist schon da','HV'],['fester Schutz vor Wind, Regen, Kälte und wilden Tieren','HV'],
+ ['kann nicht mitgenommen werden – man ist an den Ort gebunden','HN'],['gibt es nur im Gebirge, nicht überall','HN'],['oft dunkel, feucht und verraucht','HN'],
+ ['kann abgebaut und mitgenommen werden – man kann den Tierherden folgen','ZV'],['kann überall aufgestellt werden, auch im flachen Land','ZV'],['Material stammt aus der Jagdbeute (Fell, Knochen) und Holz','ZV'],
+ ['muss erst mühsam gebaut werden','ZN'],['schützt bei Sturm und großer Kälte schlechter','ZN']
+].map(a=>({n:a[0],c:a[1]}));
+const HZ_ORT=[
+ ['Gebirge mit Felsen','H'],['Schweiz (vor ca. 50 000 Jahren)','H'],['flaches Land','Z'],['Schleswig-Holstein (vor ca. 14 000 Jahren)','Z'],['Küste am Meer','Z'],['weite Steppe ohne Felsen','Z']
+].map(a=>({n:a[0],c:a[1]}));
 
-// Wissensfragen (Auswahl)
-const KNOW = [
- ['Was sind geschichtliche Quellen?','Zeugnisse aus der Vergangenheit, auf denen unser Wissen über die Vergangenheit beruht',['Bücher, die Historiker heute schreiben','Filme über die Vergangenheit','Erfundene Geschichten'],'Quellen stammen aus der Vergangenheit selbst.','Q'],
- ['Wie viele Arten von Quellen unterscheidet man?','Vier',['Zwei','Drei','Sechs'],'Schriftliche, mündliche, Bild- und Sachquellen.','Q'],
- ['Was ist KEIN Problem beim Umgang mit Quellen?','Quellen sind immer neutral und vollständig',['Viele Quellen sind schlecht erhalten','Aus manchen Zeiten gibt es nur wenige Quellen','Manche Quellen sind gefälscht'],'Quellen sind oft unvollständig und zeigen die Sicht ihres Verfassers.','Q'],
- ['Was ist eine Darstellung?','Etwas, das später über die Vergangenheit gemacht wurde, z. B. ein Schulbuch',['Ein Fundstück aus der Steinzeit','Ein alter Brief','Eine Höhlenmalerei'],'Darstellungen (Sachbücher, Dokus, Schulbücher) sind keine Quellen.','Q'],
- ['Wer erforscht die Vergangenheit durch Ausgrabungen?','Archäologen',['Astronauten','Geografen','Biologen'],'Archäologinnen und Archäologen graben Fundstücke (Sachquellen) aus.','Q'],
- ['Wie gehst du am besten vor, um etwas über die Geschichte deiner Familie zu erfahren?','Eltern und Großeltern befragen, Fotos, Briefe, Tagebücher und Urkunden ansehen',['Nur im Internet suchen','Einen Spielfilm schauen','Ein Schulbuch lesen'],'Familienmitglieder sind Zeitzeugen; Fotos, Briefe und Urkunden sind Quellen.','Q'],
- ['Welche Epoche kommt direkt nach der Antike?','Mittelalter',['Neuzeit','Vorgeschichte','Frühe Hochkulturen'],'Reihenfolge: Vorgeschichte – Frühe Hochkulturen – Antike – Mittelalter – Neuzeit.','E'],
- ['Welche Epoche ist die älteste?','Vorgeschichte',['Antike','Mittelalter','Frühe Hochkulturen'],'Zur Vorgeschichte gehört die Steinzeit.','E'],
- ['Was trennt die Jahre „vor Christus" und „nach Christus"?','Christi Geburt',['Die Gründung Roms','Der Bau der Pyramiden','Das Ende des Mittelalters'],'Mit Christi Geburt beginnt unsere Zeitrechnung.','E'],
- ['Wie viele Jahre hat ein Jahrhundert?','100',['10','1000','50'],'Ein Jahrtausend hat 1000 Jahre.','E'],
- ['Wovon lebten die Menschen in der Altsteinzeit?','Sie waren Jäger und Sammler',['Sie waren Bauern','Sie waren Händler','Sie waren Fischer in Städten'],'Sie jagten Tiere und sammelten Beeren, Wurzeln, Pilze und Nüsse.','A'],
- ['Warum zogen die Menschen der Altsteinzeit umher?','Sie folgten den Tierherden und der Nahrung',['Sie wollten Urlaub machen','Sie suchten Gold','Sie flohen vor Kriegen'],'Menschen, die umherziehen, nennt man Nomaden.','A'],
- ['Wie nennt man Menschen, die keinen festen Wohnort haben und umherziehen?','Nomaden',['Bauern','Bürger','Ritter'],'Erst in der Jungsteinzeit wurden die Menschen sesshaft.','A'],
- ['Wozu war das Feuer für die Steinzeitmenschen wichtig?','Wärme, Licht, Schutz vor Tieren und zum Braten',['Nur zum Spielen','Nur für Höhlenmalerei','Gar nicht – sie kannten kein Feuer'],'Die Feuerstelle war der Mittelpunkt in der Höhle und im Zelt.','A'],
- ['Was war das wichtigste Allzweck-Werkzeug der Altsteinzeit?','Faustkeil',['Pflug','Schwert','Hammer aus Eisen'],'Der Faustkeil wurde aus Stein geschlagen.','A'],
- ['Welches Tier jagten die Menschen in der Eiszeit, um fast alles davon zu verwenden?','Mammut',['Elefant','Kuh','Pferd'],'Ein Mammut lieferte Nahrung, Fell, Knochen, Sehnen und Fett.','A'],
- ['Was zeigen Höhlenmalereien meistens?','Tiere wie Mammut, Bison, Pferd',['Städte','Schiffe','Burgen'],'Höhlenmalereien sind Bildquellen aus der Steinzeit.','A'],
- ['Welcher Fund gehört in die Schweiz vor ca. 50 000 Jahren?','Das Bild mit der Höhle',['Das Bild mit den Zelten','Beide','Keines'],'In der Schweiz gibt es Gebirge und damit Höhlen.','A'],
- ['Welcher Fund gehört nach Schleswig-Holstein vor ca. 14 000 Jahren?','Das Bild mit den Zelten',['Das Bild mit der Höhle','Beide','Keines'],'Schleswig-Holstein ist flach und liegt am Meer – dort gibt es keine Höhlen.','A'],
- ['Welche Behausung war für Jäger und Sammler besser geeignet?','Zelte, weil man sie mitnehmen konnte',['Höhlen, weil man dort für immer bleiben konnte','Steinhäuser','Burgen'],'Wer den Tieren folgt, braucht eine Behausung zum Mitnehmen.','A']
-].map((a,i)=>({id:'k'+i,q:a[0],a:a[1],wrong:a[2],ex:a[3],cat:a[4]}));
+// Richtig/Falsch je Kapitel
+const TF={
+ zeit:[['Ein Jahr 0 gibt es nicht.',1],['763 v. Chr. ist früher als 333 v. Chr.',1],['Christi Geburt trennt die Jahre vor und nach Christus.',1],['Ein Jahrhundert hat 1000 Jahre.',0],['1492 gehört zum 14. Jahrhundert.',0],['1500 gehört noch zum 15. Jahrhundert.',1],['Die Antike kommt vor den Frühen Hochkulturen.',0],['Wir leben heute in der Neuzeit.',1]],
+ leben:[['Die Menschen der Altsteinzeit waren Jäger und Sammler.',1],['Sie betrieben schon Ackerbau und Viehzucht.',0],['Sie nutzten fast alles vom erlegten Tier.',1],['Werkzeuge waren aus Stein, Knochen, Holz und Geweih.',1],['Das Feuer diente nur zum Kochen.',0],['Sie lebten ihr ganzes Leben an einem festen Ort.',0],['Höhlenmalereien zeigen meist Tiere.',1],['Archäologen finden heraus, wie die Menschen damals lebten, indem sie ausgraben.',1]],
+ quellen:[['Ein Schulbuch ist eine geschichtliche Quelle.',0],['Quellen können gefälscht sein.',1],['Aus allen Zeiten gibt es sehr viele gut erhaltene Quellen.',0],['Eine Quelle zeigt oft nur die Sicht ihres Verfassers.',1],['Eine Fernsehdokumentation über die Römer ist eine Darstellung.',1],['Ein Foto ist eine Sachquelle.',0]]
+};
 
-// Erklärfragen (frei schreiben + selbst prüfen). Punkte: [Text, Schlüsselwörter (Regex)]
-const FREE = [
- {id:'f1',q:'Beschreibe die Behausung in der Höhle (linkes Bild).',p:[
-   ['Die Menschen leben in einer Höhle (unter Felsen).','höhle|fels'],
-   ['In der Mitte ist eine Feuerstelle – für Wärme, Licht und zum Braten.','feuer'],
-   ['Sie arbeiten zusammen bei der Beschaffung und Bearbeitung der Nahrung.','zusammen|gemeinsam|nahrung|essen|fleisch'],
-   ['Die Höhle schützt vor Wind, Regen und Kälte.','schutz|schütz|wetter|regen|kälte|wind']],need:3},
- {id:'f2',q:'Beschreibe das Zeltlager (rechtes Bild).',p:[
-   ['Die Menschen leben in Zelten aus Tierfellen über Holzstangen oder Knochen.','zelt'],
-   ['Es gibt eine Feuerstelle.','feuer'],
-   ['Sie bearbeiten gemeinsam Felle.','fell'],
-   ['Sie stellen Werkzeuge her.','werkzeug|gerät|speer|waffe']],need:3},
- {id:'f3',q:'Nenne wesentliche Unterschiede zwischen Höhle und Zelt.',p:[
-   ['Die Höhle ist natürlich entstanden – das Zelt bauen die Menschen selbst.','natürlich|natur|gebaut|bauen|aufbau'],
-   ['Das Zelt kann abgebaut und mitgenommen werden – die Höhle bleibt an ihrem Ort.','abbau|abgebaut|mitnehm|mitgenommen|transport|umher|ort'],
-   ['Die Höhle schützt besser vor dem Wetter.','schutz|schütz|wetter|stabil|fest'],
-   ['Höhlen gibt es nur im Gebirge, Zelte kann man überall aufstellen.','gebirge|berg|überall|felsen']],need:2},
- {id:'f4',q:'Beurteile, wie gut Höhle und Zelt für das Leben als Jäger und Sammler geeignet waren.',p:[
-   ['Jäger und Sammler mussten den Tierherden und der Nahrung folgen.','folg|herde|nahrung|umher|wander|zieh|tiere'],
-   ['Zelte konnte man mitnehmen und überall aufbauen.','mitnehm|mitgenommen|abbau|aufbau|überall|zelt'],
-   ['Höhlen boten guten Schutz, man war aber an den Ort gebunden.','schutz|gebunden|ort|bleiben'],
-   ['Urteil: Zelte waren deshalb besser geeignet.','besser|geeignet|deshalb|darum|daher']],need:3},
- {id:'f5',q:'Welches Bild zeigt den Fund aus der Schweiz (vor ca. 50 000 Jahren), welches den aus Schleswig-Holstein (vor ca. 14 000 Jahren)? Begründe.',p:[
-   ['Schweiz = Bild mit der Höhle.','schweiz'],
-   ['Begründung: In der Schweiz gibt es Gebirge mit Höhlen.','gebirge|berg|alpen|felsen'],
-   ['Schleswig-Holstein = Bild mit den Zelten.','schleswig|holstein'],
-   ['Begründung: Schleswig-Holstein ist flach und liegt am Meer – dort gibt es keine Höhlen.','flach|eben|meer|keine höhle']],need:3},
- {id:'f6',q:'Erkläre, wie du vorgehst, wenn du etwas über die Geschichte deiner Familie erfahren möchtest.',p:[
-   ['Eltern und Großeltern befragen.','eltern|großeltern|grosseltern|oma|opa|befrag|frag'],
-   ['Fotos und Fotoalben anschauen.','foto'],
-   ['Briefe und Tagebücher lesen.','brief|tagebuch|tagebüch'],
-   ['Urkunden oder alte Zeitungen suchen.','urkunde|dokument|zeitung|stammbuch']],need:3},
- {id:'f7',q:'Was sind Quellen? Ergänze: „Quellen sind …"',p:[
-   ['… Zeugnisse (Überreste)','zeugnis|überrest|spur|beweis'],
-   ['… aus der Vergangenheit,','vergangenheit|früher|damals'],
-   ['… auf denen unser Wissen über die Vergangenheit beruht.','wissen|beruht|erfahren|erforsch']],need:3},
- {id:'f8',q:'Nenne die vier Arten von Quellen mit je einem Beispiel.',p:[
-   ['Schriftliche Quellen, z. B. Urkunden, Briefe','schrift'],
-   ['Mündliche Quellen, z. B. Legenden, Erzählungen, Interviews','mündlich|muendlich'],
-   ['Bildquellen, z. B. Fotos, Gemälde','bild'],
-   ['Sachquellen, z. B. Münzen, Gebäude, Fossilien','sach']],need:4},
- {id:'f9',q:'Nenne Probleme beim Umgang mit Quellen.',p:[
-   ['Viele Quellen sind schlecht erhalten.','erhalten|kaputt|zerstört|verfall|beschädigt'],
-   ['Aus manchen Zeiten gibt es nur wenige Quellen.','wenig|lücke|fehl'],
-   ['Quellen sind zum Teil bewusst gefälscht.','fälsch|falsch'],
-   ['Man muss unterscheiden zwischen der Absicht des Verfassers und dem, was wirklich war.','absicht|sicht|meinung|einseitig|unterscheid']],need:3},
- {id:'f10',q:'Was ist der Unterschied zwischen einer Quelle und einer Darstellung?',p:[
-   ['Eine Quelle stammt aus der damaligen Zeit selbst.','damal|aus der zeit|vergangenheit|selbst|stammt'],
-   ['Eine Darstellung wird später (heute) über die Vergangenheit gemacht.','später|heute|nachträglich|darstellung'],
-   ['Beispiele für Darstellungen: Schulbuch, Jugendsachbuch, Geschichtsdoku im Fernsehen.','schulbuch|sachbuch|doku|film|fernseh|tv']],need:2},
- {id:'f11',q:'Zähle auf, wozu die Menschen der Altsteinzeit ein erlegtes Mammut verwendeten.',p:[
-   ['Fleisch, Leber, Herz, Gehirn, Mark → Nahrung','nahrung|essen|fleisch'],
-   ['Fell → Kleidung, Zelte, Riemen, Fußlappen, Bodenbelag','kleid|zelt|fell'],
-   ['Stoßzähne und Knochen → Schmuck, Schnitzereien, Waffen, Geräte, Nadeln','schmuck|waffe|nadel|werkzeug|gerät|knochen'],
-   ['Därme, Sehnen → Schnüre, Nähgarn, Bogensehnen','schnur|schnür|garn|sehne'],
-   ['Magen, Darm, Blase → getrocknet als Behälter','behälter|beutel|gefäß'],
-   ['Fett → Körperbemalung und Nahrung','fett|bemalung|farbe']],need:4},
- {id:'f12',q:'Nenne die Epochen in der richtigen Reihenfolge mit ihren Zeiträumen.',p:[
-   ['Vorgeschichte: bis 2000 v. Chr.','vorgeschichte'],
-   ['Frühe Hochkulturen: 2000 – 500 v. Chr.','hochkultur'],
-   ['Antike: 500 v. Chr. – 500 n. Chr.','antike'],
-   ['Mittelalter: 500 – 1500 n. Chr.','mittelalter'],
-   ['Neuzeit: ab 1500 n. Chr.','neuzeit']],need:5}
+// Erklärfragen: Musterpunkte + Schlüsselwörter (Regex) für den Vorschlag
+const FREE={
+ q_probleme:{q:'Nenne Probleme beim Umgang mit Quellen.',p:[['Viele Quellen sind schlecht erhalten.','erhalten|kaputt|zerstört|verfall|beschädigt'],['Aus manchen Zeiten gibt es nur wenige Quellen.','wenig|lücke|fehl'],['Quellen sind zum Teil bewusst gefälscht.','fälsch|falsch'],['Quellen zeigen die Sicht/Absicht des Verfassers – man muss sie vom wirklichen Geschehen unterscheiden.','absicht|sicht|meinung|einseitig|unterscheid']],need:3},
+ q_darst:{q:'Was ist der Unterschied zwischen einer Quelle und einer Darstellung? Nenne Beispiele.',p:[['Eine Quelle stammt aus der damaligen Zeit selbst.','damal|aus der zeit|vergangenheit|selbst|stammt'],['Eine Darstellung wird später (heute) über die Vergangenheit gemacht.','später|heute|nachträglich'],['Beispiele für Darstellungen: Schulbuch, Jugendsachbuch, Geschichtsdoku im Fernsehen.','schulbuch|sachbuch|doku|film|fernseh|tv']],need:3},
+ q_familie:{q:'Erkläre, wie du vorgehst, wenn du etwas über die Geschichte deiner Familie erfahren möchtest.',p:[['Eltern und Großeltern befragen (mündliche Quellen).','eltern|großeltern|grosseltern|oma|opa|befrag|frag'],['Fotos und Fotoalben anschauen (Bildquellen).','foto'],['Briefe, Tagebücher, Urkunden lesen (Schriftquellen).','brief|tagebuch|tagebüch|urkunde|zeitung'],['Alte Gegenstände ansehen, z. B. Schmuck, Möbel (Sachquellen).','gegenst|schmuck|möbel|erbstück|sache']],need:3},
+ l_mammut:{q:'Zähle auf, wozu die Menschen der Altsteinzeit die einzelnen Teile eines Mammuts verwendeten.',p:[['Fleisch, Leber, Herz, Gehirn, Mark → Nahrung','nahrung|essen|fleisch'],['Fell → Kleidung, Zelte, Riemen, Fußlappen, Bodenbelag','kleid|zelt|fell'],['Stoßzähne und Knochen → Schmuck, Schnitzereien, Waffen, Geräte, Nadeln','schmuck|waffe|nadel|werkzeug|gerät|knochen'],['Därme, Sehnen → Schnüre, Nähgarn, Bogensehnen','schnur|schnür|garn|sehne'],['Magen, Darm, Blase → getrocknet als Behälter','behälter|beutel|gefäß'],['Fett → Körperbemalung und Nahrung','fett|bemalung|farbe']],need:4},
+ l_geraete:{q:'Notiere in kurzen Stichpunkten, wozu die gefundenen Geräte (F – H – S – N) gebraucht wurden.',p:[['Faustkeil: schneiden, schaben, hacken, Tiere zerlegen','faustkeil|schneid|schab|hack|zerleg'],['Harpune: Fische fangen','harpune|fisch'],['Speerschleuder / Speerspitze: Jagd auf Tiere','speer|jag'],['Nadel: Felle zu Kleidung und Zelten nähen','nadel|näh']],need:3},
+ w_hoehle:{q:'Beschreibe die Behausung im linken Bild (Höhle).',p:[['Die Menschen leben in einer Höhle (unter Felsen).','höhle|fels'],['In der Mitte ist eine Feuerstelle – für Wärme, Licht und zum Braten.','feuer'],['Sie arbeiten zusammen bei der Beschaffung und Bearbeitung der Nahrung.','zusammen|gemeinsam|nahrung|essen|fleisch'],['Die Höhle schützt vor Wind, Regen und Kälte.','schutz|schütz|wetter|regen|kälte|wind']],need:3},
+ w_zelt:{q:'Beschreibe die Behausung im rechten Bild (Zeltlager).',p:[['Die Menschen leben in Zelten aus Tierfellen über Holzstangen oder Knochen.','zelt'],['Es gibt eine Feuerstelle.','feuer'],['Sie bearbeiten gemeinsam Felle.','fell'],['Sie stellen Werkzeuge her.','werkzeug|gerät|speer|waffe']],need:3},
+ w_unterschied:{q:'Nenne wesentliche Unterschiede der beiden Unterkünfte.',p:[['Die Höhle ist natürlich entstanden – das Zelt bauen die Menschen selbst.','natürlich|natur|gebaut|bauen'],['Das Zelt kann abgebaut und mitgenommen werden – die Höhle bleibt am Ort.','abbau|abgebaut|mitnehm|mitgenommen|transport|umher'],['Die Höhle schützt besser vor dem Wetter.','schutz|schütz|wetter|stabil|fest'],['Höhlen gibt es nur im Gebirge, Zelte kann man überall aufstellen.','gebirge|berg|überall|felsen|flach']],need:3},
+ w_beurteilen:{q:'Beurteile, wie gut die beiden Behausungen für das Leben als Jäger und Sammler geeignet waren.',p:[['Jäger und Sammler mussten den Tierherden und der Nahrung folgen.','folg|herde|nahrung|umher|wander|zieh|tiere'],['Zelte konnte man mitnehmen und überall aufbauen.','mitnehm|mitgenommen|abbau|aufbau|überall'],['Höhlen boten guten Schutz, man war aber an den Ort gebunden.','schutz|gebunden|ort|bleiben'],['Urteil: Zelte waren deshalb besser geeignet.','besser|geeignet|deshalb|darum|daher']],need:3},
+ w_fund:{q:'Bestimme, welches Bild den Fund aus der Schweiz (vor ca. 50 000 Jahren) und welches den aus Schleswig-Holstein (vor ca. 14 000 Jahren) zeigt. Begründe.',p:[['Schweiz = linkes Bild (Höhle).','schweiz'],['Begründung: In der Schweiz gibt es Gebirge mit Felsen und Höhlen.','gebirge|berg|alpen|felsen'],['Schleswig-Holstein = rechtes Bild (Zelte).','schleswig|holstein'],['Begründung: Schleswig-Holstein ist flach und liegt am Meer – dort gibt es keine Höhlen.','flach|eben|meer|keine höhle']],need:4}
+};
+
+// Begriffe (Karteikarten) je Kapitel
+const CARDS={
+ quellen:[['Quelle','Zeugnis aus der Vergangenheit, auf dem unser Wissen über die Vergangenheit beruht.'],['Schriftliche Quelle','Etwas Geschriebenes, z. B. Urkunde, Brief, Tagebuch, Gesetz, Zeitung.'],['Mündliche Quelle','Etwas Erzähltes, z. B. Sage, Legende, Erzählung, Interview, Tonbandaufzeichnung.'],['Bildquelle','Ein Bild, z. B. Foto, Gemälde, Zeichnung, Höhlenmalerei, Karte.'],['Sachquelle','Ein Gegenstand oder Überrest, z. B. Münze, Ruine, Gebäude, Gefäß, Fossilien.'],['Darstellung','Später über die Vergangenheit gemacht, z. B. Schulbuch, Jugendsachbuch, Geschichtsdoku – keine Quelle.']],
+ zeit:[['Epoche','Ein längerer Zeitabschnitt der Geschichte, z. B. Antike oder Mittelalter.'],['Christi Geburt','Beginn unserer Zeitrechnung; trennt „vor Christus" und „nach Christus".'],['Jahrhundert','100 Jahre. Trick: Hunderter + 1 (1492 → 15. Jahrhundert).'],['Zeitleiste','Zeigt Ereignisse und Epochen in der richtigen zeitlichen Reihenfolge.']],
+ leben:[['Jäger und Sammler','Jagten Tiere und sammelten Beeren, Wurzeln, Nüsse.'],['Nomaden','Menschen ohne festen Wohnort, die den Tierherden hinterherziehen.'],['Archäologe / Archäologin','Erforscht die Vergangenheit durch Ausgrabungen und Fundstücke.'],['Faustkeil','Allzweck-Werkzeug aus Stein.'],['Harpune','Speer mit Widerhaken zum Fischfang.']],
+ wohnen:[['Höhle','Natürlich entstanden, fester Schutz – aber ortsgebunden und nur im Gebirge.'],['Zelt','Aus Fellen über Stangen oder Knochen – abbaubar und mitnehmbar, überall aufstellbar.']]
+};
+
+/* =========================================================
+   AUFGABEN – so gestellt, wie sie in einer Probe vorkommen
+   ========================================================= */
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
+const pick=(a,n)=>shuffle(a).slice(0,n);
+const QCATS=Object.entries(QT).map(([k,v])=>({k,n:v.s,l:v.n}));
+const CH=[
+ {k:'quellen',n:'Geschichtliche Quellen',ic:'📜',d:'Woher wir etwas über Geschichte wissen: Quellenarten, Probleme, Darstellungen'},
+ {k:'zeit',n:'Zeit und Epochen',ic:'🏛️',d:'Epochen, Zeitleiste, Jahrhunderte'},
+ {k:'leben',n:'Leben in der Altsteinzeit',ic:'🦣',d:'Jäger und Sammler, Mammut, archäologische Fundstücke'},
+ {k:'wohnen',n:'Wohnen in der Altsteinzeit',ic:'🛖',d:'Höhle und Zelt: Unterschiede, Vor- und Nachteile, wo sie vorkamen'}
 ];
+const TASKS=[
+ // ---------- 1 Geschichtliche Quellen ----------
+ {id:'q_def',ch:'quellen',make:()=>({type:'gaps',title:'Ergänze den Merksatz.',tpl:'Quellen sind {0} aus der {1}, auf denen unser {2} über die Vergangenheit beruht.',
+   gaps:[{acc:['Zeugnisse','Überreste']},{acc:['Vergangenheit']},{acc:['Wissen']}],bank:['Darstellungen','Zukunft','Meinung']})},
+ {id:'q_arten',ch:'quellen',make:()=>({type:'gaps',title:'Nenne die vier Arten von Quellen.',tpl:'1. {0} Quellen<br>2. {1} Quellen<br>3. {2}quellen<br>4. {3}quellen',
+   gaps:[{acc:['Schriftliche']},{acc:['Mündliche']},{acc:['Bild']},{acc:['Sach']}],bank:['Gedachte','Film'],ex:'Die Reihenfolge ist egal – wichtig sind alle vier.',anyOrder:true})},
+ {id:'q_sort',ch:'quellen',make:()=>{const s=[];QCATS.forEach(c=>s.push(...pick(QUELLEN.filter(q=>q.c===c.k),3)));return{type:'sort',title:'Ordne die Quellen den vier Überkategorien zu.',items:shuffle(s),cats:QCATS};}},
+ {id:'q_ueberschrift',ch:'quellen',make:()=>{const g=QCATS.map(c=>({c,ex:pick(QUELLEN.filter(q=>q.c===c.k&&!q.alt.length),4).map(q=>q.n)}));const sh=shuffle(g);
+   return{type:'gaps',title:'Die Quellen wurden in Gruppen sortiert. Finde für jede Gruppe die passende Überschrift.',tpl:sh.map((x,i)=>`<b>{${i}}</b>: ${x.ex.join(', ')}`).join('<br>'),
+   gaps:sh.map(x=>({acc:[x.c.l],sel:true,opts:QCATS.map(c=>c.l)}))};}},
+ {id:'q_darst',ch:'quellen',make:()=>({type:'sort',title:'Quelle oder Darstellung? Ordne zu.',items:pick(DARST.filter(d=>d.c==='Q'),4).concat(pick(DARST.filter(d=>d.c==='D'),4)).sort(()=>Math.random()-.5),cats:[{k:'Q',n:'Quelle'},{k:'D',n:'Darstellung'}],
+   ex:'Quellen stammen aus der damaligen Zeit. Darstellungen werden später über die Vergangenheit gemacht.'})},
+ {id:'q_darst_satz',ch:'quellen',make:()=>({type:'gaps',title:'Ergänze den Satz über Darstellungen.',tpl:'Darstellungen wie z. B. {0} oder {1} im Fernsehen sind {2} historischen Quellen, weil sie erst {3} über die Vergangenheit gemacht wurden.',
+   gaps:[{acc:['Jugendsachbücher','Schulbücher','Sachbücher']},{acc:['Geschichtsdokumentationen','Dokumentationen','Dokus']},{acc:['keine']},{acc:['später','heute']}],bank:['Urkunden','Münzen','echte','früher']})},
+ {id:'q_probleme_satz',ch:'quellen',make:()=>({type:'gaps',title:'Probleme beim Umgang mit Quellen – ergänze.',tpl:'• Viele Quellen sind schlecht {0}.<br>• Aus manchen Zeiten gibt es nur {1} Quellen.<br>• Quellen sind zum Teil bewusst {2}.<br>• Eine Quelle zeigt oft nur die {3} ihres Verfassers – man muss sie vom wirklichen Geschehen unterscheiden.',
+   gaps:[{acc:['erhalten']},{acc:['wenige']},{acc:['gefälscht']},{acc:['Sicht','Absicht','Meinung']}],bank:['viele','gemalt','neu']})},
+ {id:'q_tf',ch:'quellen',make:()=>({type:'sort',title:'Richtig oder falsch?',items:TF.quellen.map(t=>({n:t[0],c:t[1]?'R':'F'})),cats:[{k:'R',n:'richtig'},{k:'F',n:'falsch'}]})},
+ {id:'q_familie',ch:'quellen',make:()=>({type:'free',f:FREE.q_familie})},
+ {id:'q_probleme',ch:'quellen',make:()=>({type:'free',f:FREE.q_probleme})},
+ {id:'q_darst_frei',ch:'quellen',make:()=>({type:'free',f:FREE.q_darst})},
+ // ---------- 2 Zeit und Epochen ----------
+ {id:'z_order',ch:'zeit',make:()=>({type:'order',title:'Bringe die Epochen in die richtige Reihenfolge – von der ältesten zur jüngsten.',items:EPO.map(e=>e.n)})},
+ {id:'z_zeitraum',ch:'zeit',make:()=>{const e=shuffle(EPO);return{type:'gaps',title:'Trage zu jeder Epoche den Zeitraum ein (wie auf dem Arbeitsblatt).',tpl:e.map((x,i)=>`<b>${x.n}</b>: {${i}}`).join('<br>'),gaps:e.map(x=>({acc:[x.z],sel:true,opts:EPO.map(y=>y.z)}))};}},
+ {id:'z_bilder',ch:'zeit',make:()=>({type:'sort',title:'Ordne die Abbildungen vom Arbeitsblatt der richtigen Epoche zu.',items:shuffle(EBILD),cats:EPO.map(e=>({k:e.k,n:e.n.replace('Frühe ','Früh. ')}))})},
+ {id:'z_daten',ch:'zeit',make:()=>({type:'timeline',title:'Trage auf der Zeitleiste ein kleines Kreuz für die folgenden Daten ein.',targets:shuffle([{label:'333 v. Chr.',y:-333},{label:'1492 n. Chr.',y:1492},{label:'14 n. Chr.',y:14},{label:'763 v. Chr.',y:-763}])})},
+ {id:'z_epochen_tl',ch:'zeit',make:()=>({type:'timeline',title:'Markiere auf der Zeitleiste die Epochen: Tippe jeweils irgendwo in die genannte Epoche.',targets:['AN','MA','NZ'].map(k=>({label:EK[k].n,von:EK[k].von,bis:EK[k].bis,z:EK[k].z}))})},
+ {id:'z_jh',ch:'zeit',make:()=>{const y=[[1492,15],[14,1],[-333,4],[-763,8]].concat(pick([[1500,15],[1501,16],[2026,21],[800,8],[-44,1],[1066,11]],2));
+   return{type:'gaps',title:'In welchem Jahrhundert liegen diese Jahre? Schreibe die Zahl.',tpl:y.map((a,i)=>`<b>${yTxt(a[0])}</b> → {${i}}. Jahrhundert${a[0]<0?' v. Chr.':''}`).join('<br>'),gaps:y.map(a=>({acc:[String(a[1])],num:true})),
+   ex:'Trick: Hunderter-Stelle + 1. Ausnahme: volle Hunderter (1500 = noch 15. Jahrhundert).'};}},
+ {id:'z_reihe',ch:'zeit',make:()=>({type:'order',title:'Ordne die Daten zeitlich – das früheste zuerst.',items:['763 v. Chr.','333 v. Chr.','14 n. Chr.','1492 n. Chr.'],ex:'Vor Christus gilt: Je größer die Zahl, desto länger ist es her.'})},
+ {id:'z_tf',ch:'zeit',make:()=>({type:'sort',title:'Richtig oder falsch?',items:TF.zeit.map(t=>({n:t[0],c:t[1]?'R':'F'})),cats:[{k:'R',n:'richtig'},{k:'F',n:'falsch'}]})},
+ // ---------- 3 Leben in der Altsteinzeit ----------
+ {id:'l_lebensweise',ch:'leben',make:()=>({type:'gaps',title:'Ergänze den Text über die Lebensweise.',tpl:'Die Menschen der Altsteinzeit waren {0} und {1}. Sie hatten keinen festen Wohnort und zogen den {2} hinterher. Solche Menschen nennt man {3}. Ihre Werkzeuge stellten sie aus {4}, Knochen und Holz her.',
+   gaps:[{acc:['Jäger']},{acc:['Sammler']},{acc:['Tierherden','Herden','Tieren']},{acc:['Nomaden']},{acc:['Stein']}],bank:['Bauern','Händler','Eisen','Rittern']})},
+ {id:'l_mammut',ch:'leben',make:()=>({type:'sort',title:'Mammut 🦣: Wozu wurden die Teile verwendet? Ordne jede Verwendung dem richtigen Teil zu.',items:shuffle(MAMMUT.flatMap(m=>pick(m.use,Math.min(2,m.use.length)).map(u=>({n:u,c:m.k})))),cats:MAMMUT.map(m=>({k:m.k,n:m.teil}))})},
+ {id:'l_fund_name',ch:'leben',make:()=>({type:'gaps',title:'Archäologische Fundstücke im Grabungsfeld: Schreibe die Geräte zu den Anfangsbuchstaben auf.',tpl:GERAET.map((g,i)=>`<b>${g.k}</b> → {${i}}`).join('<br>'),
+   gaps:GERAET.map(g=>({acc:g.acc})),bank:['Schwert','Pflug','Hammer'],ex:'Faustkeil – Harpune – Speerschleuder (oder Speerspitze) – Nadel'})},
+ {id:'l_fund_use',ch:'leben',make:()=>({type:'sort',title:'Wozu wurden die Geräte gebraucht? Ordne zu.',items:shuffle([['schneiden, schaben, hacken','F'],['Tiere zerlegen und Felle bearbeiten','F'],['Fische fangen','H'],['Widerhaken halten die Beute fest','H'],['Speere weiter und kräftiger werfen / Tiere jagen','S'],['Felle zu Kleidung zusammennähen','N'],['Zelte aus Fellen nähen','N']].map(a=>({n:a[0],c:a[1]}))),cats:GERAET.map(g=>({k:g.k,n:g.n.split(' ')[0]}))})},
+ {id:'l_archaeo',ch:'leben',make:()=>({type:'gaps',title:'Ergänze.',tpl:'Archäologinnen und Archäologen erforschen die Vergangenheit durch {0}. Ihre Fundstücke sind {1}. Nur mit einem scharfen Blick erkennt man wichtige Funde.',gaps:[{acc:['Ausgrabungen','Grabungen']},{acc:['Sachquellen']}],bank:['Interviews','Bildquellen','Darstellungen']})},
+ {id:'l_tf',ch:'leben',make:()=>({type:'sort',title:'Richtig oder falsch?',items:TF.leben.map(t=>({n:t[0],c:t[1]?'R':'F'})),cats:[{k:'R',n:'richtig'},{k:'F',n:'falsch'}]})},
+ {id:'l_mammut_frei',ch:'leben',make:()=>({type:'free',f:FREE.l_mammut})},
+ {id:'l_geraete_frei',ch:'leben',make:()=>({type:'free',f:FREE.l_geraete})},
+ // ---------- 4 Wohnen in der Altsteinzeit ----------
+ {id:'w_merkmal',ch:'wohnen',make:()=>({type:'sort',title:'Höhle oder Zelt? Ordne die Merkmale zu.',items:shuffle(HZ_MERKMAL),cats:[{k:'H',n:'Höhle'},{k:'Z',n:'Zelt'},{k:'B',n:'beide'}]})},
+ {id:'w_vn',ch:'wohnen',make:()=>({type:'sort',title:'Vor- und Nachteile: Ordne jede Aussage zu.',items:shuffle(HZ_VN),cats:[{k:'HV',n:'Höhle 👍 Vorteil'},{k:'HN',n:'Höhle 👎 Nachteil'},{k:'ZV',n:'Zelt 👍 Vorteil'},{k:'ZN',n:'Zelt 👎 Nachteil'}]})},
+ {id:'w_ort',ch:'wohnen',make:()=>({type:'sort',title:'Wo kamen eher Höhlen, wo eher Zelte vor?',items:shuffle(HZ_ORT),cats:[{k:'H',n:'Höhle'},{k:'Z',n:'Zelt'}]})},
+ {id:'w_fund_satz',ch:'wohnen',make:()=>({type:'gaps',title:'Ergänze die Begründung zur Zuordnung der Funde.',tpl:'Der Fund aus der <b>Schweiz</b> (vor ca. 50 000 Jahren) zeigt die {0}, denn dort gibt es {1} mit Felsen und Höhlen.<br>Der Fund aus <b>Schleswig-Holstein</b> (vor ca. 14 000 Jahren) zeigt die {2}, denn das Land ist {3} und liegt am Meer – dort gibt es keine Höhlen.',
+   gaps:[{acc:['Höhle']},{acc:['Gebirge','Berge']},{acc:['Zelte','Zelt']},{acc:['flach','eben']}],bank:['Wüste','Burg','steil']})},
+ {id:'w_hoehle',ch:'wohnen',make:()=>({type:'free',f:FREE.w_hoehle})},
+ {id:'w_zelt',ch:'wohnen',make:()=>({type:'free',f:FREE.w_zelt})},
+ {id:'w_unterschied',ch:'wohnen',make:()=>({type:'free',f:FREE.w_unterschied})},
+ {id:'w_beurteilen',ch:'wohnen',make:()=>({type:'free',f:FREE.w_beurteilen})},
+ {id:'w_fund',ch:'wohnen',make:()=>({type:'free',f:FREE.w_fund})}
+];
+const TK=Object.fromEntries(TASKS.map(t=>[t.id,t]));
+const inst=id=>Object.assign({id,ch:TK[id].ch},TK[id].make());
+// Probearbeit: je Kapitel typische Aufgaben, eine Erklärfrage pro Kapitel
+const EXAM={quellen:[['q_sort'],['q_def','q_darst','q_probleme_satz'],['q_probleme','q_familie','q_darst_frei']],
+ zeit:[['z_order','z_reihe'],['z_daten'],['z_jh','z_zeitraum','z_bilder']],
+ leben:[['l_mammut'],['l_fund_name'],['l_geraete_frei','l_mammut_frei','l_lebensweise']],
+ wohnen:[['w_merkmal','w_vn'],['w_fund_satz','w_ort'],['w_beurteilen','w_unterschied','w_fund']]};
 
 /* =========================================================
    SPEICHER (Lernstand) – nur in diesem Browser
    ========================================================= */
-const LS_KEY='geschichte-trainer-v1';
-let DB={items:{},sessions:[],set:{answer:'mc'}};
-try{const s=JSON.parse(localStorage.getItem(LS_KEY)||'null');if(s&&s.items)DB=Object.assign(DB,s);}catch(e){}
+const LS_KEY='geschichte-trainer-v2';
+let DB={tasks:{},sessions:[],set:{answer:'mc'}};
+try{const s=JSON.parse(localStorage.getItem(LS_KEY)||'null');if(s&&s.tasks)DB=Object.assign(DB,s);}catch(e){}
 function save(){try{localStorage.setItem(LS_KEY,JSON.stringify(DB));}catch(e){}}
-function record(key,ok){const it=DB.items[key]||(DB.items[key]={r:0,w:0,h:[]});ok?it.r++:it.w++;it.h.push(ok?1:0);if(it.h.length>4)it.h.shift();save();}
-function mastered(key){const it=DB.items[key];return !!(it&&it.h.length>=2&&it.h.slice(-2).every(x=>x));}
-function weak(key){const it=DB.items[key];return !!(it&&it.h.length&&!mastered(key)&&it.h.includes(0));}
-const allKeys=()=>Object.keys(DB.items);
+function record(id,frac){const it=DB.tasks[id]||(DB.tasks[id]={h:[]});it.h.push(Math.round(frac*100)/100);if(it.h.length>4)it.h.shift();save();}
+const OK=0.8;
+function mastered(id){const it=DB.tasks[id];return !!(it&&it.h.length>=2&&it.h.slice(-2).every(x=>x>=OK));}
+function weak(id){const it=DB.tasks[id];return !!(it&&it.h.length&&!mastered(id)&&it.h.some(x=>x<OK));}
 
 /* =========================================================
    HILFSFUNKTIONEN
    ========================================================= */
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
-const pick=(a,n)=>shuffle(a).slice(0,n);
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),1600);}
 const n1=s=>s.toLowerCase().trim().replace(/\s+/g,' ').replace(/^(die|der|das|ein|eine)\s+/,'');
 const n2=s=>n1(s).replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss').replace(/[\s\-.]/g,'');
@@ -374,6 +368,7 @@ function checkText(input,answers){
   return 'bad';
 }
 const useText=()=>DB.set.answer==='text';
+const chOf=k=>CH.find(c=>c.k===k);
 
 /* =========================================================
    ZEITLEISTE (wie auf dem Arbeitsblatt: 1000 v. Chr. bis heute)
@@ -381,290 +376,226 @@ const useText=()=>DB.set.answer==='text';
 const TL={min:-1000,max:2100,x0:44,x1:956};
 const tx=y=>TL.x0+(y-TL.min)/(TL.max-TL.min)*(TL.x1-TL.x0);
 function timeline(box,o={}){
-  let s=`<svg viewBox="0 0 1000 ${o.bands?150:110}" class="tl"><rect x="0" y="0" width="1000" height="${o.bands?150:110}" fill="#fff"/>`;
-  if(o.bands){EPO.forEach(e=>{const a=tx(Math.max(e.von,TL.min)),b=tx(Math.min(e.bis,TL.max));if(b<=a)return;s+=`<rect x="${a}" y="96" width="${b-a}" height="44" fill="${e.col}"/><text x="${(a+b)/2}" y="123" class="tlb">${e.n.replace('Frühe ','')}</text>`;});}
-  s+=`<rect x="${TL.x0}" y="44" width="${TL.x1-TL.x0}" height="20" rx="4" fill="#e8ecf5" stroke="#8a94ad"/>`;
+  const H=o.bands?150:118;
+  let s=`<svg viewBox="0 0 1000 ${H}" class="tl"><rect x="0" y="0" width="1000" height="${H}" fill="#fff"/>`;
+  if(o.bands)EPO.forEach(e=>{const a=tx(Math.max(e.von,TL.min)),b=tx(Math.min(e.bis,TL.max));if(b<=a)return;s+=`<rect x="${a}" y="100" width="${b-a}" height="44" fill="${e.col}"/><text x="${(a+b)/2}" y="127" class="tlb">${e.n.replace('Frühe ','')}</text>`;});
+  s+=`<g class="bands"></g><rect x="${TL.x0}" y="44" width="${TL.x1-TL.x0}" height="20" rx="4" fill="#e8ecf5" stroke="#8a94ad" fill-opacity=".85"/>`;
   for(let y=-1000;y<=2100;y+=100){const x=tx(y);const big=y%500===0;s+=`<line x1="${x}" y1="${big?36:44}" x2="${x}" y2="${big?72:64}" stroke="#4a5568" stroke-width="${big?2:1}"/>`;
     if(big)s+=`<text x="${x}" y="28" class="tll">${y<0?-y+' v.':y===0?'Chr. Geb.':y}</text>`;
     if(y<2100){const c=y<0?(-y)/100:y/100+1;s+=`<text x="${tx(y+50)}" y="88" class="tlc">${c}.</text>`;}}
-  s+=`<line x1="${tx(0)}" y1="10" x2="${tx(0)}" y2="${o.bands?140:96}" stroke="#d63b3b" stroke-width="2.5"/>`;
-  s+=`<g class="marks"></g></svg>`;
+  s+=`<line x1="${tx(0)}" y1="10" x2="${tx(0)}" y2="${H-8}" stroke="#d63b3b" stroke-width="2.5"/><g class="marks"></g></svg>`;
   box.innerHTML=s;box.classList.add('tlbox');
-  const svg=box.querySelector('svg'),g=svg.querySelector('.marks');
+  const svg=box.querySelector('svg'),g=svg.querySelector('.marks'),gb=svg.querySelector('.bands');
   if(o.onTap){svg.style.cursor='crosshair';svg.addEventListener('click',e=>{const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const q=p.matrixTransform(svg.getScreenCTM().inverse());const y=Math.round(TL.min+(q.x-TL.x0)/(TL.x1-TL.x0)*(TL.max-TL.min));o.onTap(Math.max(TL.min,Math.min(TL.max,y)));});}
-  return{mark(y,col,label){const x=tx(y);g.insertAdjacentHTML('beforeend',`<g><line x1="${x}" y1="38" x2="${x}" y2="70" stroke="${col}" stroke-width="4"/><text x="${x}" y="${label&&label.up?14:106}" class="tlm" fill="${col}">✕ ${esc(label?label.t:'')}</text></g>`);},
-    band(a,b,col){g.insertAdjacentHTML('afterbegin',`<rect x="${tx(a)}" y="44" width="${tx(b)-tx(a)}" height="20" fill="${col}" opacity=".7"/>`);}};
+  return{mark(y,col,t,up){const x=tx(y);g.insertAdjacentHTML('beforeend',`<g><line x1="${x}" y1="38" x2="${x}" y2="70" stroke="${col}" stroke-width="4"/><text x="${x}" y="${up?14:108}" class="tlm" fill="${col}">✕ ${esc(t||'')}</text></g>`);},
+    band(a,b,col){gb.insertAdjacentHTML('beforeend',`<rect x="${tx(Math.max(a,TL.min))}" y="44" width="${tx(Math.min(b,TL.max))-tx(Math.max(a,TL.min))}" height="20" fill="${col}"/>`);},clear(){g.innerHTML='';gb.innerHTML='';}};
 }
 
 /* =========================================================
-   FRAGEN ERZEUGEN
+   AUFGABE ANZEIGEN UND AUSWERTEN
+   Jede Aufgabe meldet {pts, max} zurück.
    ========================================================= */
-const QTYPES=Object.keys(QT);
-const qQuelle=q=>({key:'quelle:'+q.id,cat:'Quellen',type:'mc',prompt:`Zu welcher Art von Quelle gehört <u>${esc(q.n)}</u>?`,answer:QT[q.t],alsoOk:q.alt.map(t=>QT[t]),options:QTYPES.map(t=>QT[t]),
-  ex:(q.hint?q.hint+' ':'')+`${q.n} = ${QT[q.t]}.`});
-const qDarst=d=>({key:'darst:'+d.id,cat:'Quellen',type:'mc',prompt:`Quelle oder Darstellung?<small>${esc(d.n)}</small>`,answer:d.t==='Q'?'Quelle':'Darstellung',options:['Quelle','Darstellung'],ex:d.ex});
-const qKnow=k=>({key:'know:'+k.id,cat:k.cat==='Q'?'Quellen':k.cat==='E'?'Epochen & Zeit':'Altsteinzeit',type:'mc',prompt:esc(k.q),answer:k.a,options:shuffle([k.a,...k.wrong]),ex:k.ex});
-const qTF=t=>({key:'tf:'+t.id,cat:'Altsteinzeit',type:'mc',prompt:`Richtig oder falsch?<small>${esc(t.s)}</small>`,answer:t.r?'Richtig':'Falsch',options:['Richtig','Falsch'],ex:t.ex});
-const qEpoBild=b=>({key:'ebild:'+b.id,cat:'Epochen & Zeit',type:'mc',prompt:`<span style="font-size:2rem">${b.ic}</span><br>${esc(b.n)} – zu welcher Epoche gehört das?`,answer:EK[b.e].n,options:EPO.map(e=>e.n),ex:`${EK[b.e].n} (${EK[b.e].z})`});
-const qEpoZeit=e=>useText()
-  ?{key:'ezeit:'+e.k,cat:'Epochen & Zeit',type:'text',prompt:`Welche Epoche liegt im Zeitraum <u>${esc(e.z)}</u>?`,answer:e.n,accept:[e.n,...(e.k==='HK'?['Hochkulturen']:[])],ex:`${e.z}: ${e.n}`}
-  :{key:'ezeit:'+e.k,cat:'Epochen & Zeit',type:'mc',prompt:`Welcher Zeitraum gehört zur Epoche <u>${esc(e.n)}</u>?`,answer:e.z,options:shuffle(EPO.map(x=>x.z)),ex:`${e.n}: ${e.z} (laut Arbeitsblatt)`};
-const qOrder=()=>({key:'order:epochen',cat:'Epochen & Zeit',type:'order',prompt:'Tippe die Epochen in der richtigen Reihenfolge an – von der ältesten zur jüngsten.',items:EPO.map(e=>e.n),ex:'Vorgeschichte – Frühe Hochkulturen – Antike – Mittelalter – Neuzeit'});
-const qTap=d=>({key:'tl:'+d.id,cat:'Epochen & Zeit',type:'timeline',prompt:`Tippe auf der Zeitleiste auf <u>${esc(d.n)}</u>`,year:d.y,label:d.n,ex:d.ex});
-const qTapEpo=e=>({key:'tlepo:'+e.k,cat:'Epochen & Zeit',type:'tlEpoch',prompt:`Tippe auf der Zeitleiste irgendwo in die Epoche <u>${esc(e.n)}</u>`,epoch:e,ex:`${e.n}: ${e.z}`});
-const qJH=j=>({key:'jh:'+j.id,cat:'Epochen & Zeit',type:'num',prompt:`In welchem Jahrhundert liegt das Jahr <u>${yTxt(j.y)}</u>?<small>Schreibe nur die Zahl${j.y<0?' (Jahrhundert vor Christus)':''}.</small>`,answer:j.j,
-  ex:j.y%100===0?`${yTxt(j.y)} ist das letzte Jahr des ${j.j}. Jahrhunderts – hier gilt die Regel „Hunderter + 1" nicht!`:`Hunderter-Stelle ${Math.floor(Math.abs(j.y)/100)} + 1 = ${j.j}. Jahrhundert${j.y<0?' vor Christus':''}.`});
-const qEarlier=()=>{const[a,b]=pick(DATEN.filter(d=>d.id!=='t0'),2);const ans=a.y<b.y?a.n:b.n;return{key:'frueh:'+[a.id,b.id].sort().join('-'),cat:'Epochen & Zeit',type:'mc',prompt:'Welches Datum liegt früher?',answer:ans,options:shuffle([a.n,b.n]),ex:'Vor Christus gilt: Je größer die Zahl, desto länger ist es her.'};};
-const qMammut=m=>({key:'mammut:'+m.id,cat:'Altsteinzeit',type:'mc',prompt:`Mammut 🦣 – wozu verwendeten die Menschen <u>${esc(m.teil)}</u>?`,answer:m.use,options:shuffle(MAMMUT.map(x=>x.use)),ex:`${m.teil} → ${m.use}`});
-const qMDing=d=>{const m=MAMMUT.find(x=>x.id===d.m);return{key:'mding:'+d.id,cat:'Altsteinzeit',type:'mc',prompt:`Mammut 🦣 – aus welchem Teil machten die Menschen <u>${esc(d.n)}</u>?`,answer:m.teil,options:shuffle(MAMMUT.map(x=>x.teil)),ex:`${m.teil} → ${m.use}`};};
-const qGeraetName=g=>useText()
-  ?{key:'gname:'+g.id,cat:'Altsteinzeit',type:'text',prompt:`Fundstück mit <u>${g.l}</u>: Wie heißt das Gerät?<small>${esc(g.use)}</small>`,answer:g.n,accept:g.acc,ex:`${g.l} = ${g.n}`}
-  :{key:'gname:'+g.id,cat:'Altsteinzeit',type:'mc',prompt:`Fundstück mit <u>${g.l}</u>: Wie heißt das Gerät?<small>${esc(g.use)}</small>`,answer:g.n,options:shuffle(GERAET.map(x=>x.n)),ex:`${g.l} = ${g.n}`};
-const qGeraetUse=g=>({key:'guse:'+g.id,cat:'Altsteinzeit',type:'mc',prompt:`Wozu wurde ein <u>${esc(g.n)}</u> gebraucht?`,answer:g.use,options:shuffle(GERAET.map(x=>x.use)),ex:`${g.n}: ${g.use}`});
-const qFree=f=>({key:'free:'+f.id,cat:'Erklärfragen',type:'free',prompt:esc(f.q),f});
+function renderTask(box,t,onDone,exam){
+  box.innerHTML=`<div class="prompt">${t.type==='free'?esc(t.f.q):esc(t.title)}</div><div class="tbody"></div><div class="fb" id="fb"></div><div id="act"></div>`;
+  const body=box.querySelector('.tbody'),fb=box.querySelector('#fb'),act=box.querySelector('#act');
+  const btn=(txt,fn)=>{act.innerHTML=`<button class="btn next">${txt}</button>`;act.querySelector('button').onclick=fn;};
+  const finish=(pts,max,html,cls)=>{if(exam){onDone(pts,max);return;}fb.className='fb '+(cls||(pts/max>=OK?'ok':'bad'));fb.innerHTML=html;btn('Weiter ›',()=>onDone(pts,max));};
+  const headline=(pts,max)=>`${pts/max>=OK?'Gut gemacht! ✅':'Schau dir die markierten Stellen noch einmal an.'} <span class="pts">${Math.round(pts*10)/10} von ${max} Punkten</span>`;
 
-/* =========================================================
-   MODI
-   ========================================================= */
-const MODES=[
- {id:'learn',ic:'📖',t:'Lernen',d:'Alles Wichtige + Merktipps',run:()=>showLearn()},
- {id:'cards',ic:'🃏',t:'Karteikarten',d:'Begriffe erklären und umdrehen',run:()=>showCards()},
- {id:'quellen',ic:'📜',t:'Quellen sortieren',d:'Schrift-, mündlich, Bild, Sache?',q:()=>QUELLEN.map(qQuelle)},
- {id:'qwissen',ic:'🔎',t:'Quelle oder Darstellung',d:'+ Wissen über Quellen',q:()=>[...DARST.map(qDarst),...KNOW.filter(k=>k.cat==='Q').map(qKnow)]},
- {id:'epochen',ic:'🏛️',t:'Epochen',d:'Reihenfolge, Zeiträume, Bilder',q:()=>[qOrder(),...EPO.map(qEpoZeit),...EBILD.map(qEpoBild),...KNOW.filter(k=>k.cat==='E').map(qKnow)]},
- {id:'zeitleiste',ic:'📏',t:'Zeitleiste',d:'Daten und Epochen eintragen',q:()=>[...DATEN.map(qTap),...EPO.filter(e=>e.k!=='VG').map(qTapEpo)]},
- {id:'jh',ic:'🔢',t:'Jahrhunderte',d:'Jahr → Jahrhundert, was ist früher?',q:()=>[...JH.map(qJH),...Array.from({length:5},qEarlier)]},
- {id:'mammut',ic:'🦣',t:'Mammut',d:'Wozu wurde was verwendet?',q:()=>[...MAMMUT.map(qMammut),...MDING.map(qMDing)]},
- {id:'geraete',ic:'🪓',t:'Fundstücke F-H-S-N',d:'Geräte der Altsteinzeit',q:()=>[...GERAET.map(qGeraetName),...GERAET.map(qGeraetUse)]},
- {id:'wohnen',ic:'🛖',t:'Höhle & Zelt',d:'Leben in der Altsteinzeit',q:()=>[...TF.map(qTF),...KNOW.filter(k=>k.cat==='A').map(qKnow)]},
- {id:'free',ic:'✍️',t:'Erklärfragen',d:'Frei antworten wie in der Arbeit',q:()=>FREE.map(qFree)},
- {id:'exam',ic:'📝',t:'Probearbeit',d:'Gemischt wie in der Arbeit – mit Note',run:()=>startExam()},
- {id:'weak',ic:'🔥',t:'Fehler üben',d:'Nur was noch nicht sitzt',run:()=>startWeak()},
- {id:'stats',ic:'📊',t:'Mein Lernstand',d:'Was sitzt schon, was nicht?',run:()=>showStats()}
-];
-
-function home(){
-  const app=$('#app');const w=allKeys().filter(k=>weak(k)&&!k.startsWith('card:')).length;
-  app.innerHTML=`<header><h1>🏺 Geschichte-Trainer</h1></header>
-  <div class="card settings"><label>Antworten</label>
-    <div class="seg" id="sAns"><button data-v="mc">Auswählen (leichter)</button><button data-v="text">Selbst schreiben (wie in der Arbeit)</button></div></div>
-  <div class="grid">${MODES.map(m=>`<button class="tile${m.id==='exam'?' hi':''}" data-m="${m.id}"><span class="ic">${m.ic}</span><b>${m.t}${m.id==='weak'&&w?` (${w})`:''}</b><span>${m.d}</span></button>`).join('')}</div>
-  <p class="muted" style="font-size:.8rem;margin-top:18px">Themen: Woher unser Wissen über Geschichte stammt · Geschichtliche Quellen · Epochen und Zeitleiste · Leben und Wohnen in der Altsteinzeit. Dein Lernstand bleibt nur auf diesem Gerät gespeichert.</p>`;
-  $('#sAns').querySelectorAll('button').forEach(b=>{b.classList.toggle('on',DB.set.answer===b.dataset.v);b.onclick=()=>{DB.set.answer=b.dataset.v;save();home();};});
-  app.querySelectorAll('.tile').forEach(t=>t.onclick=()=>{const m=MODES.find(x=>x.id===t.dataset.m);m.run?m.run():runQuiz(m.t,m.id==='epochen'?[m.q()[0],...shuffle(m.q().slice(1))]:shuffle(m.q()),{});});
-  window.scrollTo(0,0);
-}
-
-/* =========================================================
-   QUIZ-ENGINE
-   ========================================================= */
-function runQuiz(title,qs,opt){
-  const app=$('#app');let i=0,score=0;const log=[];const t0=Date.now();
-  if(!qs.length){app.innerHTML=`<header><button class="btn ghost" id="back">‹ Zurück</button><h1>${esc(title)}</h1></header><div class="card">Hier gibt es gerade nichts zu üben. 🎉</div>`;$('#back').onclick=home;return;}
-  function show(){
-    const q=qs[i];
-    app.innerHTML=`<header><button class="btn ghost" id="back">‹ Menü</button><h1>${esc(title)}</h1></header>
-    <div class="card"><div class="qhead"><span>Frage ${i+1} von ${qs.length}</span><span>${opt.exam?'':'✔ '+Math.round(score*10)/10}</span></div>
-    <div class="progress"><i style="width:${i/qs.length*100}%"></i></div>
-    <div class="prompt">${q.prompt}</div><div id="tlc"></div><div id="ans"></div><div class="fb" id="fb"></div><div id="nx"></div></div>`;
-    $('#back').onclick=()=>{if(i===0||confirm('Übung abbrechen?'))home();};
-    const ans=$('#ans');let done=false,tl=null;
-    if(q.type==='mc'){
-      ans.innerHTML=`<div class="opts${q.options.some(o=>o.length>34)||q.options.length>4?' one':''}">${q.options.map(o=>`<button class="opt">${esc(o)}</button>`).join('')}</div>`;
-      ans.querySelectorAll('.opt').forEach(b=>b.onclick=()=>answer(b.textContent,b));
-    }else if(q.type==='text'||q.type==='num'){
-      ans.innerHTML=`<form class="txt" autocomplete="off"><input id="ti" ${q.type==='num'?'inputmode="numeric"':'autocapitalize="words"'} autocorrect="off" spellcheck="false" placeholder="${q.type==='num'?'Zahl …':'Antwort schreiben …'}"><button class="btn">OK</button></form>`;
-      ans.querySelector('form').onsubmit=e=>{e.preventDefault();const v=$('#ti').value;if(!v.trim()){toast('Schreib erst etwas hinein 🙂');return;}answer(v);};
-      setTimeout(()=>$('#ti').focus(),50);
-    }else if(q.type==='timeline'||q.type==='tlEpoch'){
-      tl=timeline($('#tlc'),{onTap:y=>answer(y)});
-      ans.innerHTML='<p class="muted" style="margin:6px 0 0;font-size:.85rem">Tipp: Die rote Linie ist Christi Geburt. Links davon: vor Christus. Auf dem Handy kannst du die Zeitleiste seitlich wischen.</p>';
-    }else if(q.type==='order'){
-      const sel=[];const items=shuffle(q.items);
-      ans.innerHTML=`<div class="chosen" id="ch"></div><div class="opts one">${items.map(o=>`<button class="opt">${esc(o)}</button>`).join('')}</div>`;
-      ans.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{if(done||b.disabled)return;sel.push(b.textContent);b.disabled=true;b.classList.add('used');$('#ch').innerHTML=sel.map((s,k)=>`<span class="chip">${k+1}. ${esc(s)}</span>`).join(' ');if(sel.length===q.items.length)answer(sel);});
-    }else if(q.type==='free'){
-      ans.innerHTML=`<textarea id="fa" rows="5" placeholder="Schreibe deine Antwort in Stichpunkten oder ganzen Sätzen …"></textarea><button class="btn next" id="fdone">Fertig – mit Musterantwort vergleichen</button>`;
-      $('#fdone').onclick=()=>{const v=$('#fa').value;if(!v.trim()){toast('Schreib erst deine Antwort 🙂');return;}selfCheck(v);};
-    }
-    function selfCheck(v){
-      done=true;$('#fa').disabled=true;$('#fdone').remove();
-      const low=v.toLowerCase();
-      const fb=$('#fb');fb.className='fb plain';
-      fb.innerHTML=`<b>Vergleiche mit der Musterantwort.</b> Hake ab, was du (sinngemäß) geschrieben hast – vorgeschlagen ist schon angehakt:<div class="checks">${q.f.p.map((p,k)=>`<label class="chk"><input type="checkbox" data-k="${k}" ${new RegExp(p[1]).test(low)?'checked':''}> ${esc(p[0])}</label>`).join('')}</div><div class="ex">Für „richtig" brauchst du mindestens ${q.f.need} von ${q.f.p.length} Punkten.</div>`;
-      $('#nx').innerHTML=`<button class="btn next">Bewerten ›</button>`;
-      $('#nx button').onclick=()=>{const n=[...fb.querySelectorAll('input:checked')].length;const part=Math.min(1,n/q.f.need);const ok=n>=q.f.need;score+=part;record(q.key,ok);log.push({q,ok,given:v,part,n});
-        if(opt.exam){next();return;}
-        fb.querySelectorAll('input').forEach(x=>x.disabled=true);
-        fb.insertAdjacentHTML('afterbegin',`<div class="${ok?'okt':'badt'}">${ok?'Gut gemacht! ✅':'Da fehlt noch etwas – lies die Musterpunkte genau.'} (${n} von ${q.f.p.length} Punkten)</div>`);
-        $('#nx').innerHTML=`<button class="btn next">${i+1<qs.length?'Weiter ›':'Auswertung ›'}</button>`;$('#nx button').onclick=next;};
-    }
-    function answer(v,btn){
-      if(done)return;done=true;
-      let res,given=v,correctTxt='';
-      if(q.type==='text')res=checkText(v,q.accept);
-      else if(q.type==='num'){const m=String(v).match(/\d+/);res=m&&+m[0]===q.answer?'ok':'bad';correctTxt=q.answer+'. Jahrhundert';}
-      else if(q.type==='mc')res=(v===q.answer||(q.alsoOk||[]).includes(v))?'ok':'bad';
-      else if(q.type==='timeline'){res=Math.abs(v-q.year)<=80?'ok':'bad';given='ungefähr '+yTxt(v);correctTxt=q.label;}
-      else if(q.type==='tlEpoch'){const e=q.epoch;res=v>=e.von&&v<e.bis?'ok':'bad';const ge=EPO.find(x=>v>=x.von&&v<x.bis);given=`${yTxt(v)} (${ge?ge.n:''})`;correctTxt=e.n+': '+e.z;}
-      else if(q.type==='order'){res=v.join('|')===q.items.join('|')?'ok':'bad';given=v.join(' – ');correctTxt=q.items.join(' – ');}
-      const ok=res==='ok'||res==='umlaut';
-      if(ok)score++;record(q.key,ok);log.push({q,ok,given,correctTxt});
-      if(opt.exam){next();return;}
-      if(q.type==='mc'){ans.querySelectorAll('.opt').forEach(b=>{b.disabled=true;if(b.textContent===q.answer)b.classList.add('ok');});if(btn&&!ok)btn.classList.add('bad');if(btn&&ok)btn.classList.add('ok');}
-      if(q.type==='text'||q.type==='num')$('#ti').disabled=true;
-      if(tl){if(q.type==='timeline'){tl.mark(q.year,'#1f9d55',{t:q.label,up:true});if(!ok)tl.mark(v,'#d63b3b',{t:'dein Tipp'});}
-        else{tl.band(Math.max(q.epoch.von,TL.min),Math.min(q.epoch.bis,TL.max),'#5cc98a');tl.mark(v,ok?'#1f9d55':'#d63b3b',{t:'dein Tipp'});}}
-      const fb=$('#fb');const alsoOk=(q.alsoOk||[]).includes(v);
-      let head=ok?pick(['Richtig! 👍','Super! ✅','Genau! 🎉','Stimmt! 💪'],1)[0]:'Leider falsch.';
-      if(res==='umlaut')head='Richtig – aber achte auf die Schreibweise: '+esc(q.answer);
-      if(res==='near')head='Fast! Achte genau auf die Schreibweise.';
-      if(alsoOk)head='Gilt auch als richtig – siehe Hinweis.';
-      fb.className='fb '+(ok?(res==='umlaut'||alsoOk?'warn':'ok'):(res==='near'?'warn':'bad'));
-      const corr=ok&&res==='ok'?'':`<div class="ex">Richtig ist: <b>${esc(correctTxt||q.answer)}</b>${q.type==='text'?` – du hast geschrieben: „${esc(v)}"`:''}</div>`;
-      fb.innerHTML=head+corr+(q.ex?`<div class="ex">${esc(q.ex)}</div>`:'');
-      $('#nx').innerHTML=`<button class="btn next">${i+1<qs.length?'Weiter ›':'Auswertung ›'}</button>`;
-      const nb=$('#nx button');nb.onclick=next;
-      if(ok&&res==='ok'&&!alsoOk&&!tl&&q.type!=='order')setTimeout(()=>{if(document.body.contains(nb))next();},1000);
-    }
+  if(t.type==='sort'){
+    const sel={};
+    body.innerHTML=`<div class="sortl">${t.items.map((it,i)=>`<div class="srow" data-i="${i}"><div class="sitem">${esc(it.n)}</div><div class="scats">${t.cats.map(c=>`<button class="sc" data-c="${c.k}">${esc(c.n)}</button>`).join('')}</div><div class="sfb"></div></div>`).join('')}</div>`;
+    body.querySelectorAll('.srow').forEach(r=>r.querySelectorAll('.sc').forEach(b=>b.onclick=()=>{if(r.dataset.done)return;r.querySelectorAll('.sc').forEach(x=>x.classList.remove('on'));b.classList.add('on');sel[r.dataset.i]=b.dataset.c;}));
+    btn('Prüfen',()=>{
+      if(Object.keys(sel).length<t.items.length){toast('Ordne erst alle zu 🙂');return;}
+      let pts=0;const hints=[];
+      t.items.forEach((it,i)=>{const r=body.querySelector(`.srow[data-i="${i}"]`);r.dataset.done=1;const v=sel[i];const ok=v===it.c||(it.alt||[]).includes(v);if(ok)pts++;
+        r.classList.add(ok?'ok':'bad');const cn=t.cats.find(c=>c.k===it.c).n;
+        r.querySelector('.sfb').innerHTML=ok?((it.alt||[]).includes(v)?`✔ gilt auch – meist: <b>${esc(cn)}</b>`:'✔'):`✘ richtig: <b>${esc(cn)}</b>`;
+        if(it.hint&&(!ok||v!==it.c))hints.push(it.hint);});
+      finish(pts,t.items.length,headline(pts,t.items.length)+(hints.length?`<div class="ex">${hints.map(esc).join('<br>')}</div>`:'')+(t.ex?`<div class="ex">${esc(t.ex)}</div>`:''));
+    });
   }
-  function next(){i++;if(i<qs.length)show();else finish();}
+  else if(t.type==='gaps'){
+    const bank=shuffle([...new Set([...t.gaps.filter(g=>!g.sel&&!g.num).map(g=>g.acc[0]),...(t.bank||[])])]);
+    let k=0;const html=esc(t.tpl).replace(/&lt;br&gt;/g,'<br>').replace(/&lt;(\/?)b&gt;/g,'<$1b>').replace(/\{(\d+)\}/g,(m,i)=>{const g=t.gaps[+i];
+      if(g.num)return `<input class="gap num" data-g="${i}" inputmode="numeric" autocomplete="off">`;
+      if(g.sel||!useText())return `<select class="gap" data-g="${i}"><option value="">…</option>${(g.opts?shuffle(g.opts):bank).map(o=>`<option>${esc(o)}</option>`).join('')}</select>`;
+      return `<input class="gap" data-g="${i}" autocomplete="off" autocorrect="off" spellcheck="false" autocapitalize="off">`;});
+    body.innerHTML=`<div class="gtext">${html}</div>${!useText()&&bank.length?'':''}`;
+    btn('Prüfen',()=>{
+      const els=[...body.querySelectorAll('.gap')];if(els.some(e=>!e.value.trim())){toast('Fülle erst alle Lücken aus 🙂');return;}
+      let pts=0;const used=new Set();const notes=[];
+      els.forEach(e=>{const g=t.gaps[+e.dataset.g];let accs=g.acc;
+        if(t.anyOrder){const hit=t.gaps.findIndex((x,j)=>!used.has(j)&&checkText(e.value,x.acc)!=='bad'&&checkText(e.value,x.acc)!=='near');if(hit>=0){used.add(hit);accs=t.gaps[hit].acc;}}
+        const r=(e.tagName==='SELECT'||g.num)?(accs.some(a=>n1(a)===n1(e.value))?'ok':'bad'):checkText(e.value,accs);
+        const ok=r==='ok'||r==='umlaut';if(ok)pts++;e.disabled=true;e.classList.add(ok?'ok':'bad');
+        if(!ok)e.insertAdjacentHTML('afterend',`<span class="corr">${esc(g.acc[0])}</span>`);
+        if(r==='umlaut')notes.push(`Schreibweise: ${g.acc[0]}`);if(r==='near')notes.push(`Fast – achte auf die Schreibweise: ${g.acc[0]}`);});
+      finish(pts,els.length,headline(pts,els.length)+(notes.length?`<div class="ex">${notes.map(esc).join('<br>')}</div>`:'')+(t.ex?`<div class="ex">${esc(t.ex)}</div>`:''));
+    });
+  }
+  else if(t.type==='order'){
+    const chosen=[];const items=shuffle(t.items);
+    body.innerHTML=`<div class="chosen" id="ch"><span class="muted">Tippe der Reihe nach an …</span></div><div class="opts one">${items.map(o=>`<button class="opt">${esc(o)}</button>`).join('')}</div><button class="btn ghost small" id="undo">↺ Neu anfangen</button>`;
+    const draw=()=>{body.querySelector('#ch').innerHTML=chosen.length?chosen.map((s,i)=>`<span class="chip">${i+1}. ${esc(s)}</span>`).join(' '):'<span class="muted">Tippe der Reihe nach an …</span>';};
+    body.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{if(b.disabled)return;chosen.push(b.textContent);b.disabled=true;b.classList.add('used');draw();});
+    body.querySelector('#undo').onclick=()=>{chosen.length=0;body.querySelectorAll('.opt').forEach(b=>{b.disabled=false;b.classList.remove('used');});draw();};
+    btn('Prüfen',()=>{if(chosen.length<t.items.length){toast('Tippe erst alle an 🙂');return;}
+      body.querySelector('#undo').remove();let pos=0;chosen.forEach((c,i)=>{if(c===t.items[i])pos++;});const max=2,pts=pos===t.items.length?2:pos>=t.items.length-2?1:0;
+      finish(pts,max,headline(pts,max)+`<div class="ex">Richtig: <b>${t.items.map(esc).join(' → ')}</b></div>`+(t.ex?`<div class="ex">${esc(t.ex)}</div>`:''));});
+  }
+  else if(t.type==='timeline'){
+    let i=0;const taps=[];
+    body.innerHTML=`<div class="tlq">Jetzt eintragen: <b id="cur">${esc(t.targets[0].label)}</b> <span class="muted" id="cnt">(1 von ${t.targets.length})</span></div><div id="tlc"></div><p class="muted" style="margin:6px 0 0;font-size:.85rem">Die rote Linie ist Christi Geburt – links davon „vor Christus". Auf dem Handy kannst du die Zeitleiste seitlich wischen.</p>`;
+    const tl=timeline(body.querySelector('#tlc'),{onTap:y=>{if(i>=t.targets.length)return;taps.push(y);tl.mark(y,'#2a6df4',t.targets[i].label,i%2===0);i++;
+      if(i<t.targets.length){body.querySelector('#cur').textContent=t.targets[i].label;body.querySelector('#cnt').textContent=`(${i+1} von ${t.targets.length})`;}else{body.querySelector('.tlq').innerHTML='Alle eingetragen – jetzt prüfen.';}}});
+    btn('Prüfen',()=>{if(i<t.targets.length){toast('Trage erst alle ein 🙂');return;}
+      tl.clear();let pts=0;const lines=[];
+      t.targets.forEach((g,k)=>{const y=taps[k];let ok;
+        if(g.y!==undefined){ok=Math.abs(y-g.y)<=80;tl.mark(g.y,'#1f9d55',g.label,k%2===0);if(!ok)tl.mark(y,'#d63b3b','',false);}
+        else{ok=y>=g.von&&y<g.bis;tl.band(g.von,g.bis,ok?'rgba(31,157,85,.45)':'rgba(214,59,59,.35)');tl.mark(y,ok?'#1f9d55':'#d63b3b',g.label,k%2===0);}
+        if(ok)pts++;lines.push(`${ok?'✔':'✘'} ${esc(g.label)}${g.z?` (${esc(g.z)})`:''}${ok?'':` – du hast bei ${yTxt(y)} getippt`}`);});
+      finish(pts,t.targets.length,headline(pts,t.targets.length)+`<div class="ex">${lines.join('<br>')}</div>`);});
+  }
+  else if(t.type==='free'){
+    body.innerHTML=`<textarea id="fa" rows="5" placeholder="Schreibe deine Antwort in Stichpunkten oder ganzen Sätzen – wie in der Probe …"></textarea>`;
+    btn('Fertig – mit Musterantwort vergleichen',()=>{const v=body.querySelector('#fa').value;if(!v.trim()){toast('Schreib erst deine Antwort 🙂');return;}
+      body.querySelector('#fa').disabled=true;const low=v.toLowerCase();
+      fb.className='fb plain';fb.innerHTML=`<b>Vergleiche mit der Musterantwort.</b> Hake ab, was du sinngemäß geschrieben hast – Vorschläge sind schon angehakt:<div class="checks">${t.f.p.map((p,k)=>`<label class="chk"><input type="checkbox" ${new RegExp(p[1]).test(low)?'checked':''}> ${esc(p[0])}</label>`).join('')}</div><div class="ex">Für die volle Punktzahl brauchst du ${t.f.need} von ${t.f.p.length} Punkten.</div>`;
+      btn('Bewerten ›',()=>{const n=[...fb.querySelectorAll('input:checked')].length;fb.querySelectorAll('input').forEach(x=>x.disabled=true);const pts=Math.min(n,t.f.need),max=t.f.need;
+        if(exam){onDone(pts,max);return;}
+        fb.insertAdjacentHTML('afterbegin',`<div class="${pts/max>=OK?'okt':'badt'}">${headline(pts,max)}</div>`);btn('Weiter ›',()=>onDone(pts,max));});});
+  }
+}
+
+/* =========================================================
+   ÜBEN / PROBEARBEIT
+   ========================================================= */
+function runSet(title,ids,opt={}){
+  const app=$('#app');let i=0,P=0,M=0;const log=[];const t0=Date.now();
+  if(!ids.length){app.innerHTML=`<header><button class="btn ghost" id="back">‹ Menü</button><h1>${esc(title)}</h1></header><div class="card">Hier gibt es gerade nichts zu üben. 🎉</div>`;$('#back').onclick=home;return;}
+  function show(){
+    const id=ids[i],t=inst(id),c=chOf(t.ch);window.__cur=t;
+    app.innerHTML=`<header><button class="btn ghost" id="back">‹ Menü</button><h1>${esc(title)}</h1></header>
+    <div class="card"><div class="qhead"><span>Aufgabe ${i+1} von ${ids.length}</span><span>${c.ic} ${esc(c.n)}</span></div><div class="progress"><i style="width:${i/ids.length*100}%"></i></div><div id="task"></div></div>`;
+    $('#back').onclick=()=>{if(i===0||confirm('Übung abbrechen?'))home();};
+    renderTask($('#task'),t,(pts,max)=>{record(id,pts/max);P+=pts;M+=max;log.push({id,t,pts,max});i++;i<ids.length?show():finish();},opt.exam);
+    window.scrollTo(0,0);
+  }
   function finish(){
-    const pct=Math.round(score/qs.length*100),sec=Math.round((Date.now()-t0)/1000);
-    DB.sessions.push({d:new Date().toISOString(),m:title,r:Math.round(score*10)/10,n:qs.length});if(DB.sessions.length>200)DB.sessions.shift();save();
-    const note=opt.exam?grade(pct):null;const wrong=log.filter(x=>!x.ok);
+    const pct=Math.round(P/M*100),sec=Math.round((Date.now()-t0)/1000);
+    DB.sessions.push({d:new Date().toISOString(),m:title,p:Math.round(P*10)/10,n:M});if(DB.sessions.length>200)DB.sessions.shift();save();
+    const weakT=log.filter(x=>x.pts/x.max<OK);
     app.innerHTML=`<header><h1>${esc(title)} – Auswertung</h1></header>
-    <div class="card"><div class="big-res">${Math.round(score*10)/10} / ${qs.length}</div>
-    <p style="text-align:center;margin:0">${pct} % · ${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')} min</p>
-    ${note?`<p style="text-align:center;font-size:1.3rem;font-weight:800;margin:10px 0 0">Ungefähre Note: ${note}</p><p class="muted" style="text-align:center;font-size:.8rem;margin:2px 0 0">Nur ein Richtwert – jede Lehrkraft bewertet etwas anders.</p>`:''}
+    <div class="card"><div class="big-res">${Math.round(P*10)/10} / ${M} Punkte</div><p style="text-align:center;margin:0">${pct} % · ${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')} min</p>
+    ${opt.exam?`<p style="text-align:center;font-size:1.3rem;font-weight:800;margin:10px 0 0">Ungefähre Note: ${grade(pct)}</p><p class="muted" style="text-align:center;font-size:.8rem;margin:2px 0 0">Nur ein Richtwert – jede Lehrkraft bewertet etwas anders.</p>`:''}
     <p style="text-align:center">${pct>=90?'🏆 Hervorragend!':pct>=70?'👍 Gut – noch ein bisschen üben!':'💪 Weiter üben – das wird!'}</p>
-    <div class="row"><button class="btn" id="again">Nochmal</button>${wrong.length?'<button class="btn sec" id="fix">Fehler üben</button>':''}<button class="btn sec" id="menu">Menü</button></div></div>
-    ${wrong.length?`<div class="card rev"><h2 style="margin-top:0">Das musst du dir noch merken</h2>${wrong.map(x=>`<div class="r">${x.q.prompt.replace(/<small>/g,' – ').replace(/<[^>]+>/g,'')}<br>${x.q.type==='free'?`Musterantwort: <b style="color:var(--ok)">${x.q.f.p.map(p=>esc(p[0])).join(' ')}</b>`:`Deine Antwort: <b style="color:var(--bad)">${esc(Array.isArray(x.given)?x.given.join(' – '):x.given)}</b> · Richtig: <b style="color:var(--ok)">${esc(x.correctTxt||x.q.answer)}</b>`}</div>`).join('')}</div>`:''}`;
-    $('#again').onclick=()=>opt.exam?startExam():runQuiz(title,shuffle(qs.map(regen)),opt);
-    $('#menu').onclick=home;
-    if(wrong.length)$('#fix').onclick=()=>runQuiz('Fehler üben',shuffle(wrong.map(x=>regen(x.q))),{});
+    <div class="row"><button class="btn" id="again">Nochmal</button>${weakT.length?'<button class="btn sec" id="fix">Schwache Aufgaben üben</button>':''}<button class="btn sec" id="menu">Menü</button></div></div>
+    <div class="card rev"><h2 style="margin-top:0">Deine Aufgaben</h2>${log.map(x=>`<div class="r"><span class="${x.pts/x.max>=OK?'okc':'badc'}">${x.pts/x.max>=OK?'✔':'✘'}</span> ${esc(x.t.type==='free'?x.t.f.q:x.t.title)} <b>${Math.round(x.pts*10)/10}/${x.max}</b></div>`).join('')}
+    ${opt.exam?'<p class="muted" style="font-size:.85rem">Tipp: Schwache Aufgaben kannst du im jeweiligen Kapitel mit Lösungen und Erklärungen üben.</p>':''}</div>`;
+    $('#again').onclick=()=>opt.exam?startExam():runSet(title,ids,opt);$('#menu').onclick=home;
+    if(weakT.length)$('#fix').onclick=()=>runSet('Schwache Aufgaben',weakT.map(x=>x.id));
     window.scrollTo(0,0);
   }
   show();
 }
 function grade(p){return p>=92?'1':p>=81?'2':p>=67?'3':p>=50?'4':p>=30?'5':'6';}
-// Frage aus dem Schlüssel neu erzeugen (für „Fehler üben" und „Nochmal")
-function fromKey(key){
-  const i=key.indexOf(':'),kind=key.slice(0,i),id=key.slice(i+1);
-  const f=(a,k='id')=>a.find(x=>x[k]===id);
-  switch(kind){
-    case 'quelle':return f(QUELLEN)&&qQuelle(f(QUELLEN));
-    case 'darst':return f(DARST)&&qDarst(f(DARST));
-    case 'know':return f(KNOW)&&qKnow(f(KNOW));
-    case 'tf':return f(TF)&&qTF(f(TF));
-    case 'ebild':return f(EBILD)&&qEpoBild(f(EBILD));
-    case 'ezeit':return EK[id]&&qEpoZeit(EK[id]);
-    case 'order':return qOrder();
-    case 'tl':return f(DATEN)&&qTap(f(DATEN));
-    case 'tlepo':return EK[id]&&qTapEpo(EK[id]);
-    case 'jh':return f(JH)&&qJH(f(JH));
-    case 'frueh':{const[a,b]=id.split('-').map(x=>DATEN.find(d=>d.id===x));if(!a||!b)return null;return{key,cat:'Epochen & Zeit',type:'mc',prompt:'Welches Datum liegt früher?',answer:a.y<b.y?a.n:b.n,options:shuffle([a.n,b.n]),ex:'Vor Christus gilt: Je größer die Zahl, desto länger ist es her.'};}
-    case 'mammut':return f(MAMMUT)&&qMammut(f(MAMMUT));
-    case 'mding':return f(MDING)&&qMDing(f(MDING));
-    case 'gname':return f(GERAET)&&qGeraetName(f(GERAET));
-    case 'guse':return f(GERAET)&&qGeraetUse(f(GERAET));
-    case 'free':return f(FREE)&&qFree(f(FREE));
-  }return null;
-}
-const regen=q=>fromKey(q.key)||q;
-function startExam(){
-  const qs=[
-    ...pick(QUELLEN,4).map(qQuelle),...pick(DARST,2).map(qDarst),
-    qOrder(),...pick(EBILD,2).map(qEpoBild),
-    ...pick(DATEN.filter(d=>['t333','t1492','t14','t763'].includes(d.id)),2).map(qTap),
-    ...pick(JH,2).map(qJH),
-    ...pick(MAMMUT,2).map(qMammut),...pick(GERAET,1).map(g=>({...qGeraetName(g),type:'text',accept:g.acc,options:null})),
-    ...pick(TF,2).map(qTF),
-    ...pick(FREE,3).map(qFree)
-  ];
-  runQuiz('Probearbeit',qs,{exam:true});
-}
-function startWeak(){runQuiz('Fehler üben',shuffle(allKeys().filter(weak).map(fromKey).filter(Boolean)),{});}
+function startExam(){const ids=[];CH.forEach(c=>EXAM[c.k].forEach(g=>ids.push(pick(g,1)[0])));runSet('Probearbeit',ids,{exam:true});}
+function startWeak(){runSet('Fehler üben',TASKS.map(t=>t.id).filter(weak));}
 
 /* =========================================================
-   LERNEN
+   STARTSEITE
    ========================================================= */
-function showLearn(){
-  const app=$('#app');
-  app.innerHTML=`<header><button class="btn ghost" id="back">‹ Menü</button><h1>📖 Lernen</h1></header>
-  <div class="card"><h2 style="margin-top:0">1. Woher unser Wissen über Geschichte stammt</h2>
-  <div class="tip"><b>Quellen sind</b> Zeugnisse aus der Vergangenheit, auf denen unser Wissen über die Vergangenheit beruht.</div>
-  <table><tr><th>Art</th><th>Woran erkennst du sie?</th><th>Beispiele (aus deinem Heft)</th></tr>
-  ${QTYPES.map(t=>`<tr><td><b>${QT[t]}</b></td><td>${QTX[t]}</td><td>${QUELLEN.filter(q=>q.t===t).map(q=>esc(q.n)).join(', ')}</td></tr>`).join('')}</table>
-  <h2>Probleme beim Umgang mit Quellen</h2><ul><li>Viele Quellen sind schlecht erhalten.</li><li>Aus manchen Zeiten gibt es nur wenige Quellen.</li><li>Quellen sind zum Teil bewusst gefälscht.</li><li>Man muss unterscheiden zwischen der Absicht des Verfassers und dem, was wirklich passiert ist.</li></ul>
-  <div class="tip"><b>Darstellungen</b> wie Schulbücher, Jugendsachbücher oder Geschichtsdokumentationen im Fernsehen sind <b>keine</b> Quellen. Sie wurden später über die Vergangenheit gemacht.</div>
-  <div class="tip warn"><b>Grenzfälle:</b> Sagen, Mythen, Legenden und Erinnerungen sind <b>mündliche</b> Quellen, solange sie erzählt werden. Schreibt man sie auf, werden sie zu Schriftquellen. Inschriften und Grabsteine liegen zwischen Schrift- und Sachquelle. In dieser App gilt bei solchen Grenzfällen beides als richtig.</div>
-  <div class="tip"><b>Familiengeschichte erforschen:</b> Eltern und Großeltern befragen, Fotos und Fotoalben anschauen, Briefe und Tagebücher lesen, Urkunden und alte Zeitungen suchen.</div></div>
-  <div class="card"><h2 style="margin-top:0">2. Epochen und Zeitleiste</h2>
-  <table><tr><th>Epoche</th><th>Zeitraum (Arbeitsblatt)</th><th>Typische Bilder</th></tr>${EPO.map(e=>`<tr><td><span class="chip" style="background:${e.col}">${e.n}</span></td><td>${e.z}</td><td>${EBILD.filter(b=>b.e===e.k).map(b=>b.ic+' '+esc(b.n)).join('<br>')}</td></tr>`).join('')}</table>
-  <div id="tl1" style="margin-top:12px"></div>
-  <div class="tip"><b>Merksatz für die Reihenfolge:</b> <b>V</b>iele <b>F</b>rösche <b>A</b>ßen <b>M</b>ittags <b>N</b>udeln – Vorgeschichte, Frühe Hochkulturen, Antike, Mittelalter, Neuzeit.</div>
-  <div class="tip"><b>Vor Christus rückwärts zählen:</b> Je größer die Zahl vor Christus, desto länger ist es her. 763 v. Chr. ist also früher als 333 v. Chr. Ein Jahr 0 gibt es nicht.</div>
-  <div class="tip"><b>Jahrhundert-Trick:</b> Hunderter-Stelle + 1. 1492 → 14 + 1 = <b>15. Jahrhundert</b>. 14 n. Chr. → 0 + 1 = <b>1. Jahrhundert</b>. 333 v. Chr. → <b>4. Jahrhundert v. Chr.</b>, 763 v. Chr. → <b>8. Jahrhundert v. Chr.</b><br><b>Ausnahme:</b> Volle Hunderter sind das Ende eines Jahrhunderts: 1500 gehört noch zum 15. Jahrhundert, 1501 schon zum 16.</div>
-  <p style="margin:6px 0"><b>Daten auf deiner Zeitleiste:</b> ${DATEN.slice(0,4).map(d=>`${d.n}${d.ex?` – ${esc(d.ex)}`:''}`).join(' · ')}</p></div>
-  <div class="card"><h2 style="margin-top:0">3. Leben in der Altsteinzeit</h2>
-  <p>Die Menschen der Altsteinzeit waren <b>Jäger und Sammler</b>. Sie zogen den Tierherden hinterher (<b>Nomaden</b>). Nach erfolgreicher Jagd verwendeten sie fast alles vom erlegten Tier:</p>
-  <table><tr><th>🦣 Teil des Mammuts</th><th>Verwendung</th></tr>${MAMMUT.map(m=>`<tr><td><b>${esc(m.teil)}</b></td><td>${esc(m.use)}</td></tr>`).join('')}</table>
-  <h2>Fundstücke im Grabungsfeld (F – H – S – N)</h2>
-  <table>${GERAET.map(g=>`<tr><td style="width:30px"><b>${g.l}</b></td><td><b>${g.n}</b><br>${esc(g.use)}</td></tr>`).join('')}</table>
-  <div class="tip warn">Beim <b>S</b> ist auf dem Foto nicht ganz sicher zu erkennen, welches Gerät gemeint ist – vermutlich eine <b>Speerspitze</b>. Frag im Zweifel deine Lehrkraft. Die App zählt auch Speer, Speerschleuder oder Schaber als richtig.</div></div>
-  <div class="card"><h2 style="margin-top:0">4. Wohnen in der Altsteinzeit</h2>
-  <table><tr><th>🪨 Höhle (linkes Bild)</th><th>🛖 Zelt (rechtes Bild)</th></tr>
-  <tr><td>natürlich entstanden</td><td>von Menschen gebaut: Tierfelle über Holzstangen oder Mammutknochen</td></tr>
-  <tr><td>Feuerstelle: Wärme, Licht, Schutz, Braten</td><td>Feuerstelle im Lager</td></tr>
-  <tr><td>Zusammenarbeit bei Beschaffung und Bearbeitung der Nahrung</td><td>Zusammenarbeit bei Fellbearbeitung und Werkzeugherstellung</td></tr>
-  <tr><td>guter Schutz vor Wind, Regen, Kälte</td><td>kann abgebaut und mitgenommen werden</td></tr>
-  <tr><td>an einen Ort gebunden, nur im Gebirge</td><td>überall aufstellbar, auch im flachen Land</td></tr></table>
-  <div class="tip"><b>Beurteilung:</b> Für Jäger und Sammler waren <b>Zelte besser geeignet</b>, weil sie den Tierherden folgen mussten und die Zelte mitnehmen konnten. Höhlen boten zwar guten Schutz, man war aber an den Ort gebunden.</div>
-  <div class="tip"><b>Zuordnung der Funde:</b> <b>Schweiz</b> (vor ca. 50 000 Jahren) = <b>Höhle</b>, weil es dort Gebirge mit Höhlen gibt. <b>Schleswig-Holstein</b> (vor ca. 14 000 Jahren) = <b>Zelte</b>, weil das Land flach ist und am Meer liegt – dort gibt es keine Höhlen.</div>
-  <div class="tip warn"><b>Achtung:</b> Die Zeichnungen auf dem Arbeitsblatt sind <b>Darstellungen</b> – sie wurden heute nach archäologischen Funden gezeichnet.</div></div>`;
-  $('#back').onclick=home;
-  const t=timeline($('#tl1'),{bands:true});DATEN.slice(0,4).forEach((d,k)=>t.mark(d.y,'#1b4fc0',{t:d.n,up:k%2===0}));
+function chStat(k){const ids=TASKS.filter(t=>t.ch===k).map(t=>t.id);return{m:ids.filter(mastered).length,n:ids.length};}
+function home(){
+  const app=$('#app');const w=TASKS.filter(t=>weak(t.id)).length;
+  app.innerHTML=`<header><h1>🏺 Geschichte-Trainer</h1></header>
+  <div class="card settings"><label>Lücken ausfüllen</label>
+  <div class="seg" id="sAns"><button data-v="mc">Auswählen (leichter)</button><button data-v="text">Selbst schreiben (wie in der Probe)</button></div></div>
+  <h2>Kapitel</h2>
+  ${CH.map((c,i)=>{const s=chStat(c.k);return `<div class="card chcard"><div class="chhead"><span class="chic">${c.ic}</span><div><b>${i+1}. ${esc(c.n)}</b><div class="muted" style="font-size:.85rem">${esc(c.d)}</div></div></div>
+  <div class="stat"><div class="bar"><i style="width:${s.m/s.n*100}%"></i></div><b>${s.m}/${s.n}</b></div>
+  <div class="row"><button class="btn sec small" data-l="${c.k}">📖 Lernzettel</button><button class="btn sec small" data-k="${c.k}">🃏 Begriffe</button><button class="btn small" data-u="${c.k}">✏️ Üben</button></div></div>`;}).join('')}
+  <h2>Prüfen</h2>
+  <div class="grid"><button class="tile hi" id="exam"><span class="ic">📝</span><b>Probearbeit</b><span>Aufgaben aus allen 4 Kapiteln – mit Punkten und Note</span></button>
+  <button class="tile" id="weak"><span class="ic">🔥</span><b>Fehler üben${w?` (${w})`:''}</b><span>Nur Aufgaben, die noch nicht sitzen</span></button>
+  <button class="tile" id="stats"><span class="ic">📊</span><b>Mein Lernstand</b><span>Was sitzt schon?</span></button></div>
+  <p class="muted" style="font-size:.8rem;margin-top:18px">Eine Aufgabe „sitzt", wenn du sie zweimal hintereinander zu mindestens 80 % geschafft hast. Dein Lernstand bleibt nur auf diesem Gerät.</p>`;
+  $('#sAns').querySelectorAll('button').forEach(b=>{b.classList.toggle('on',DB.set.answer===b.dataset.v);b.onclick=()=>{DB.set.answer=b.dataset.v;save();home();};});
+  app.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>showLearn(b.dataset.l));
+  app.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>showCards(b.dataset.k));
+  app.querySelectorAll('[data-u]').forEach(b=>b.onclick=()=>{const c=chOf(b.dataset.u);runSet(c.n,TASKS.filter(t=>t.ch===c.k).map(t=>t.id));});
+  $('#exam').onclick=startExam;$('#weak').onclick=startWeak;$('#stats').onclick=showStats;
   window.scrollTo(0,0);
 }
 
 /* =========================================================
-   KARTEIKARTEN – Begriffe
+   LERNZETTEL je Kapitel
    ========================================================= */
-const CARDS=[
- ['Quelle','Zeugnis aus der Vergangenheit, auf dem unser Wissen über die Vergangenheit beruht.'],
- ['Schriftliche Quelle','Etwas Geschriebenes aus der Vergangenheit, z. B. Urkunde, Brief, Tagebuch, Gesetz, Zeitung.'],
- ['Mündliche Quelle','Etwas Erzähltes, z. B. Sage, Erzählung, Interview, Erinnerung, Tonbandaufzeichnung.'],
- ['Bildquelle','Ein Bild aus der Vergangenheit, z. B. Foto, Gemälde, Zeichnung, Höhlenmalerei, Karte.'],
- ['Sachquelle','Ein Gegenstand oder Überrest, z. B. Münze, Ruine, Gebäude, Gefäß, Knochenreste, Fossilien.'],
- ['Darstellung','Wird später über die Vergangenheit gemacht, z. B. Schulbuch, Jugendsachbuch, Geschichtsdoku – keine Quelle.'],
- ['Archäologe / Archäologin','Erforscht die Vergangenheit durch Ausgrabungen und Fundstücke.'],
- ['Epoche','Ein längerer Zeitabschnitt in der Geschichte, z. B. Antike oder Mittelalter.'],
- ['Vorgeschichte','Epoche bis 2000 v. Chr. – dazu gehört die Steinzeit.'],
- ['Frühe Hochkulturen','2000 – 500 v. Chr., z. B. Ägypten mit Pharaonen und Pyramiden.'],
- ['Antike','500 v. Chr. – 500 n. Chr., z. B. Griechen und Römer.'],
- ['Mittelalter','500 – 1500 n. Chr., z. B. Ritter und Burgen.'],
- ['Neuzeit','ab 1500 n. Chr., z. B. Fabriken, Eisenbahn, Smartphone.'],
- ['Christi Geburt','Beginn unserer Zeitrechnung; trennt „vor Christus" und „nach Christus".'],
- ['Jahrhundert','100 Jahre. Trick: Hunderter + 1 (1492 → 15. Jahrhundert).'],
- ['Jäger und Sammler','Menschen der Altsteinzeit: jagten Tiere und sammelten Pflanzen, Beeren, Nüsse.'],
- ['Nomaden','Menschen ohne festen Wohnort, die umherziehen – z. B. den Tierherden hinterher.'],
- ['Faustkeil','Allzweck-Werkzeug aus Stein: schneiden, schaben, hacken.'],
- ['Harpune','Speer mit Widerhaken zum Fischfang.'],
- ['Höhlenmalerei','Bilder von Tieren an Höhlenwänden aus der Steinzeit – eine Bildquelle.']
-].map((a,i)=>({id:'c'+i,b:a[0],e:a[1]}));
-function showCards(){
-  let deck=shuffle(CARDS),i=0,dir='b';const app=$('#app');
+function showLearn(k){
+  const app=$('#app');const c=chOf(k);let h='';
+  if(k==='quellen')h=`
+  <div class="tip"><b>Quellen sind</b> Zeugnisse aus der Vergangenheit, auf denen unser Wissen über die Vergangenheit beruht.</div>
+  <h2>Die vier Überkategorien – mit allen Beispielen aus deinem Heft</h2>
+  <table><tr><th>Überkategorie</th><th>Woran erkennst du sie?</th><th>Beispiele</th></tr>${Object.entries(QT).map(([k2,v])=>`<tr><td><b>${v.n}</b></td><td>${v.d}</td><td>${QUELLEN.filter(q=>q.c===k2).map(q=>esc(q.n)).join(', ')}</td></tr>`).join('')}</table>
+  <div class="tip warn"><b>Grenzfälle:</b> Sagen, Mythen, Legenden und Erinnerungen sind <b>mündlich</b>, solange sie erzählt werden – aufgeschrieben werden sie zur Schriftquelle. Inschriften (Schrift) und Grabsteine (Sache) liegen dazwischen, Karten sind Bildquellen mit Schrift. In der App zählt bei Grenzfällen beides.</div>
+  <h2>Probleme beim Umgang mit Quellen</h2><ul><li>Viele Quellen sind <b>schlecht erhalten</b>.</li><li>Aus manchen Zeiten gibt es nur <b>wenige</b> Quellen.</li><li>Quellen sind zum Teil bewusst <b>gefälscht</b>.</li><li>Eine Quelle zeigt oft nur die <b>Sicht und Absicht ihres Verfassers</b> – man muss sie vom wirklichen Geschehen unterscheiden.</li></ul>
+  <h2>Darstellungen</h2><div class="tip">Darstellungen wie <b>Jugendsachbücher, Schulbücher oder Geschichtsdokumentationen im TV</b> sind <b>keine</b> Quellen. Sie wurden <b>später</b> über die Vergangenheit gemacht. Auch die Zeichnungen auf deinen Arbeitsblättern (Höhle, Zeltlager) sind Darstellungen.</div>
+  <h2>Familiengeschichte erforschen</h2><ul><li>Eltern und Großeltern befragen → mündliche Quellen</li><li>Fotos und Fotoalben anschauen → Bildquellen</li><li>Briefe, Tagebücher, Urkunden, alte Zeitungen lesen → Schriftquellen</li><li>Alte Gegenstände ansehen (Schmuck, Möbel) → Sachquellen</li></ul>`;
+  if(k==='zeit')h=`
+  <table><tr><th>Epoche</th><th>Zeitraum (Arbeitsblatt)</th><th>Bilder vom Arbeitsblatt</th></tr>${EPO.map(e=>`<tr><td><span class="chip" style="background:${e.col}">${e.n}</span></td><td>${e.z}</td><td>${EBILD.filter(b=>b.c===e.k).map(b=>esc(b.n)).join('<br>')}</td></tr>`).join('')}</table>
+  <div id="tl1" style="margin-top:12px"></div>
+  <div class="tip"><b>Merksatz Reihenfolge:</b> <b>V</b>iele <b>F</b>rösche <b>A</b>ßen <b>M</b>ittags <b>N</b>udeln – Vorgeschichte, Frühe Hochkulturen, Antike, Mittelalter, Neuzeit.</div>
+  <div class="tip"><b>Vor Christus rückwärts zählen:</b> Je größer die Zahl vor Christus, desto länger ist es her: 763 v. Chr. ist früher als 333 v. Chr. Ein Jahr 0 gibt es nicht.</div>
+  <div class="tip"><b>Jahrhundert-Trick:</b> Hunderter-Stelle + 1. 1492 → <b>15.</b> Jh. · 14 n. Chr. → <b>1.</b> Jh. · 333 v. Chr. → <b>4.</b> Jh. v. Chr. · 763 v. Chr. → <b>8.</b> Jh. v. Chr.<br><b>Ausnahme:</b> Volle Hunderter beenden ein Jahrhundert: 1500 gehört noch zum 15., 1501 schon zum 16. Jahrhundert.</div>
+  <div class="tip"><b>Daten auf deiner Zeitleiste:</b> 763 v. Chr. · 333 v. Chr. (Alexander der Große siegt bei Issos) · 14 n. Chr. (Kaiser Augustus stirbt) · 1492 (Kolumbus erreicht Amerika)</div>`;
+  if(k==='leben')h=`
+  <p>Die Menschen der Altsteinzeit waren <b>Jäger und Sammler</b>. Sie hatten keinen festen Wohnort und zogen den <b>Tierherden</b> hinterher (<b>Nomaden</b>). Werkzeuge stellten sie aus <b>Stein</b>, Knochen, Holz und Geweih her. Nach erfolgreicher Jagd verwendeten sie fast alles vom erlegten Tier:</p>
+  <table><tr><th>🦣 Teil des Mammuts</th><th>Verwendung</th></tr>${MAMMUT.map(m=>`<tr><td><b>${esc(m.teil)}</b></td><td>${esc(m.use.join(', ').replace('Nahrung (Fett)','Nahrung'))}</td></tr>`).join('')}</table>
+  <h2>Archäologische Fundstücke im Grabungsfeld</h2><p>Archäologinnen und Archäologen erforschen die Vergangenheit durch <b>Ausgrabungen</b>. Ihre Fundstücke sind <b>Sachquellen</b>.</p>
+  <table><tr><th></th><th>Gerät</th><th>Wozu wurde es gebraucht?</th></tr>${GERAET.map(g=>`<tr><td><b>${g.k}</b></td><td><b>${esc(g.n)}</b></td><td>${esc(g.use)}</td></tr>`).join('')}</table>
+  <div class="tip warn">Beim <b>S</b> ist auf dem Arbeitsblatt nicht eindeutig zu erkennen, ob eine <b>Speerschleuder</b> oder eine <b>Speerspitze</b> gemeint ist – beides gehört zur Jagd mit dem Speer. Frag im Zweifel die Lehrkraft.</div>`;
+  if(k==='wohnen')h=`
+  <h2>Beschreibung der beiden Bilder</h2>
+  <table><tr><th>🪨 Höhle (linkes Bild)</th><th>🛖 Zelte (rechtes Bild)</th></tr>
+  <tr><td>Die Menschen leben in einer Höhle unter Felsen.</td><td>Die Menschen leben in Zelten aus Tierfellen über Holzstangen oder Mammutknochen.</td></tr>
+  <tr><td>Feuerstelle: Wärme, Licht, Schutz, Braten</td><td>Feuerstelle im Lager</td></tr>
+  <tr><td>Zusammenarbeit bei Beschaffung und Bearbeitung der Nahrung</td><td>Zusammenarbeit bei Fellbearbeitung und Werkzeugherstellung</td></tr></table>
+  <h2>Unterschiede</h2>
+  <table><tr><th></th><th>🪨 Höhle</th><th>🛖 Zelt</th></tr>
+  <tr><td><b>Entstehung</b></td><td>natürlich entstanden</td><td>von Menschen gebaut</td></tr>
+  <tr><td><b>Ort</b></td><td>bleibt am Ort (ortsgebunden)</td><td>abbaubar und mitnehmbar</td></tr>
+  <tr><td><b>Wo?</b></td><td>nur im Gebirge mit Felsen</td><td>überall, auch im flachen Land</td></tr>
+  <tr><td><b>Schutz</b></td><td>fester Schutz vor Wetter und Tieren</td><td>schwächerer Schutz bei Sturm und Kälte</td></tr></table>
+  <h2>Vor- und Nachteile</h2>
+  <table><tr><th></th><th>👍 Vorteile</th><th>👎 Nachteile</th></tr>
+  <tr><td><b>Höhle</b></td><td>${HZ_VN.filter(x=>x.c==='HV').map(x=>esc(x.n)).join('<br>')}</td><td>${HZ_VN.filter(x=>x.c==='HN').map(x=>esc(x.n)).join('<br>')}</td></tr>
+  <tr><td><b>Zelt</b></td><td>${HZ_VN.filter(x=>x.c==='ZV').map(x=>esc(x.n)).join('<br>')}</td><td>${HZ_VN.filter(x=>x.c==='ZN').map(x=>esc(x.n)).join('<br>')}</td></tr></table>
+  <h2>Wo kamen sie vor? (Aufgabe 4)</h2>
+  <div class="tip"><b>Schweiz</b> (vor ca. 50 000 Jahren) → <b>linkes Bild, Höhle</b>: In der Schweiz gibt es Gebirge mit Felsen und Höhlen.<br><b>Schleswig-Holstein</b> (vor ca. 14 000 Jahren) → <b>rechtes Bild, Zelte</b>: Das Land ist flach und liegt am Meer – dort gibt es keine Höhlen.</div>
+  <h2>Beurteilung (Aufgabe 3)</h2>
+  <div class="tip">Jäger und Sammler mussten den Tierherden folgen. <b>Zelte</b> konnte man abbauen, mitnehmen und überall aufstellen – deshalb waren sie <b>besser geeignet</b>. Höhlen boten zwar guten Schutz, man war aber an den Ort gebunden und fand sie nur im Gebirge.</div>`;
+  app.innerHTML=`<header><button class="btn ghost" id="back">‹ Menü</button><h1>${c.ic} ${esc(c.n)}</h1></header><div class="card learn">${h}</div>
+  <button class="btn next" id="go">✏️ Jetzt dieses Kapitel üben</button>`;
+  $('#back').onclick=home;$('#go').onclick=()=>runSet(c.n,TASKS.filter(t=>t.ch===k).map(t=>t.id));
+  if(k==='zeit'){const t=timeline($('#tl1'),{bands:true});[[-763,'763 v.'],[-333,'333 v.'],[14,'14 n.'],[1492,'1492']].forEach(([y,l],i)=>t.mark(y,'#1b4fc0',l,i%2===0));}
+  window.scrollTo(0,0);
+}
+
+/* =========================================================
+   BEGRIFFE (Karteikarten) je Kapitel
+   ========================================================= */
+function showCards(k){
+  const app=$('#app');const c=chOf(k);let deck=shuffle(CARDS[k]),i=0;
   function draw(){
-    const c=deck[i];const front=dir==='b'?c.b:c.e,back=dir==='b'?c.e:c.b;
-    app.innerHTML=`<header><button class="btn ghost" id="back">‹ Menü</button><h1>🃏 Karteikarten</h1></header>
-    <div class="card"><div class="seg" id="dir"><button data-v="b" class="${dir==='b'?'on':''}">Begriff → Erklärung</button><button data-v="e" class="${dir==='e'?'on':''}">Erklärung → Begriff</button></div>
-    <div class="qhead" style="margin-top:10px"><span>Karte ${i+1} von ${deck.length}</span><span>Antippen zum Umdrehen</span></div>
-    <div class="flip" id="fl"><div class="in"><div class="f"><div class="${dir==='b'?'big':'mid'}">${esc(front)}</div></div><div class="b"><div class="${dir==='b'?'mid':'big'}">${esc(back)}</div></div></div></div>
-    <div class="row"><button class="btn sec" id="no">🤔 Wusste ich nicht</button><button class="btn" id="yes">✅ Wusste ich</button></div></div>`;
+    const d=deck[i];
+    app.innerHTML=`<header><button class="btn ghost" id="back">‹ Menü</button><h1>🃏 ${esc(c.n)}</h1></header>
+    <div class="card"><div class="qhead"><span>Karte ${i+1} von ${deck.length}</span><span>Antippen zum Umdrehen</span></div>
+    <div class="flip" id="fl"><div class="in"><div class="f"><div class="big">${esc(d[0])}</div><div class="muted" style="margin-top:6px">Was bedeutet das?</div></div><div class="b"><div class="mid">${esc(d[1])}</div></div></div></div>
+    <div class="row"><button class="btn sec" id="no">🤔 Nochmal</button><button class="btn" id="yes">✅ Wusste ich</button></div></div>`;
     $('#back').onclick=home;$('#fl').onclick=()=>$('#fl').classList.toggle('on');
-    app.querySelectorAll('#dir button').forEach(b=>b.onclick=()=>{dir=b.dataset.v;draw();});
-    const go=ok=>{record('card:'+c.id,ok);if(!ok)deck.push(c);i++;if(i>=deck.length){toast('Alle Karten geschafft! 🎉');deck=shuffle(CARDS);i=0;}draw();};
+    const go=ok=>{if(!ok)deck.push(d);i++;if(i>=deck.length){toast('Alle Begriffe geschafft! 🎉');deck=shuffle(CARDS[k]);i=0;}draw();};
     $('#yes').onclick=()=>go(true);$('#no').onclick=()=>go(false);
   }
   draw();
@@ -674,31 +605,15 @@ function showCards(){
    LERNSTAND
    ========================================================= */
 function showStats(){
-  const app=$('#app');
-  const groups=[
-    ['Quellen sortieren',QUELLEN.map(q=>'quelle:'+q.id)],
-    ['Quelle oder Darstellung',DARST.map(d=>'darst:'+d.id)],
-    ['Epochen',[...EPO.map(e=>'ezeit:'+e.k),...EBILD.map(b=>'ebild:'+b.id),'order:epochen']],
-    ['Zeitleiste',[...DATEN.map(d=>'tl:'+d.id),...EPO.filter(e=>e.k!=='VG').map(e=>'tlepo:'+e.k)]],
-    ['Jahrhunderte',JH.map(j=>'jh:'+j.id)],
-    ['Mammut',[...MAMMUT.map(m=>'mammut:'+m.id),...MDING.map(d=>'mding:'+d.id)]],
-    ['Fundstücke F-H-S-N',[...GERAET.map(g=>'gname:'+g.id),...GERAET.map(g=>'guse:'+g.id)]],
-    ['Höhle & Zelt / Altsteinzeit',[...TF.map(t=>'tf:'+t.id),...KNOW.filter(k=>k.cat==='A').map(k=>'know:'+k.id)]],
-    ['Erklärfragen',FREE.map(f=>'free:'+f.id)],
-    ['Begriffe (Karteikarten)',CARDS.map(c=>'card:'+c.id)]
-  ];
-  const label=key=>{const q=fromKey(key);if(key.startsWith('card:')){const c=CARDS.find(x=>'card:'+x.id===key);return c?`Begriff: ${c.b}`:key;}
-    if(!q)return key;let t=q.prompt.replace(/<small>/g,' – ').replace(/<[^>]+>/g,'');const a=q.type==='free'?'':q.type==='order'?'':' → '+(q.answer!==undefined?q.answer:q.label||'');return t+a;};
-  const weakKeys=allKeys().filter(weak);const last=DB.sessions.slice(-8).reverse();
+  const app=$('#app');const last=DB.sessions.slice(-8).reverse();
+  const tname=t=>{const x=inst(t.id);return x.type==='free'?x.f.q:x.title;};
   app.innerHTML=`<header><button class="btn ghost" id="back">‹ Menü</button><h1>📊 Mein Lernstand</h1></header>
-  <div class="card"><p class="muted" style="margin-top:0">Ein Punkt „sitzt", wenn du ihn die letzten zwei Male richtig hattest.</p>
-  ${groups.map(([n,ks])=>{const m=ks.filter(mastered).length;const p=Math.round(m/ks.length*100);return `<div class="stat"><span>${n}</span><div class="bar"><i style="width:${p}%"></i></div><b>${m}/${ks.length}</b></div>`;}).join('')}</div>
-  <div class="card"><h2 style="margin-top:0">🔥 Sitzt noch nicht (${weakKeys.length})</h2>
-  ${weakKeys.length?`<ul style="margin:0;padding-left:20px">${weakKeys.map(k=>`<li>${esc(label(k))}</li>`).join('')}</ul><button class="btn next" id="wk">Diese jetzt üben</button>`:'<p class="muted">Nichts offen – super! Oder du hast noch nicht geübt. 🙂</p>'}</div>
-  <div class="card"><h2 style="margin-top:0">Letzte Übungen</h2>${last.length?`<table><tr><th>Wann</th><th>Übung</th><th>Ergebnis</th></tr>${last.map(s=>`<tr><td>${new Date(s.d).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})} ${new Date(s.d).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}</td><td>${esc(s.m)}</td><td>${s.r}/${s.n} (${Math.round(s.r/s.n*100)} %)</td></tr>`).join('')}</table>`:'<p class="muted">Noch keine Übung gemacht.</p>'}
+  ${CH.map((c,i)=>{const ts=TASKS.filter(t=>t.ch===c.k);const s=chStat(c.k);return `<div class="card"><h2 style="margin-top:0">${c.ic} ${i+1}. ${esc(c.n)} <span class="muted">${s.m}/${s.n}</span></h2>
+  ${ts.map(t=>{const h=(DB.tasks[t.id]||{h:[]}).h;const st=mastered(t.id)?'✅':weak(t.id)?'🔥':h.length?'🟡':'⚪';return `<div class="trow">${st} ${esc(tname(t))}${h.length?` <span class="muted">(zuletzt ${Math.round(h[h.length-1]*100)} %)</span>`:''}</div>`;}).join('')}</div>`;}).join('')}
+  <div class="card"><p class="muted" style="margin-top:0">✅ sitzt · 🟡 angefangen · 🔥 noch Fehler · ⚪ noch nicht geübt</p><h2>Letzte Übungen</h2>${last.length?`<table><tr><th>Wann</th><th>Übung</th><th>Punkte</th></tr>${last.map(s=>`<tr><td>${new Date(s.d).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})} ${new Date(s.d).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}</td><td>${esc(s.m)}</td><td>${s.p}/${s.n} (${Math.round(s.p/s.n*100)} %)</td></tr>`).join('')}</table>`:'<p class="muted">Noch keine Übung gemacht.</p>'}
   <button class="btn sec small" id="reset" style="margin-top:12px">Lernstand zurücksetzen</button></div>`;
-  $('#back').onclick=home;if(weakKeys.length)$('#wk').onclick=startWeak;
-  $('#reset').onclick=()=>{if(confirm('Wirklich den ganzen Lernstand löschen?')){DB.items={};DB.sessions=[];save();showStats();}};
+  $('#back').onclick=home;
+  $('#reset').onclick=()=>{if(confirm('Wirklich den ganzen Lernstand löschen?')){DB.tasks={};DB.sessions=[];save();showStats();}};
   window.scrollTo(0,0);
 }
 home();

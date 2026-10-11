@@ -1,7 +1,7 @@
 /* Service Worker – macht den Geschichte-Trainer offline-fähig.
    Beim ersten Öffnen (mit Internet) werden alle Dateien gespeichert,
    danach läuft die App ohne Netz. */
-const CACHE = 'geschichte-trainer-v1';
+const CACHE = 'geschichte-trainer-v2';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon.svg', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
