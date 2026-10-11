@@ -155,6 +155,15 @@ input.gap{width:9.5em}input.gap.num{width:3.2em;text-align:center}
 .tlq{margin-bottom:8px;font-size:1.05rem}
 .learn h2{margin-top:18px}
 .prompt{line-height:1.35}
+.actbar{position:fixed;left:0;right:0;bottom:0;z-index:8;padding:10px 16px calc(12px + env(safe-area-inset-bottom));background:rgba(238,244,255,.97);box-shadow:0 -4px 18px rgba(20,40,90,.2);max-height:55vh;overflow:auto}
+.actbar .fb,.actbar #act{max-width:828px;margin-left:auto;margin-right:auto}
+.actbar .fb{margin-top:0}.actbar .next{margin-top:0}
+body.hasfb .actbar{cursor:pointer}
+.actbar .fb:not(.ok):not(.bad):not(.warn):not(.plain){display:none}
+.tapnext{display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:700;color:var(--blue-d);font-size:.95rem;margin-top:8px}
+.tapnext span.go{background:var(--blue);color:#fff;border-radius:999px;padding:8px 16px;white-space:nowrap}
+body.hasbar .wrap{padding-bottom:110px}body.hasfb .wrap{padding-bottom:58vh}
+#fbin.fb{margin-top:12px}
 </style>
 </head>
 <body>
@@ -395,11 +404,23 @@ function timeline(box,o={}){
    AUFGABE ANZEIGEN UND AUSWERTEN
    Jede Aufgabe meldet {pts, max} zurück.
    ========================================================= */
+// Feste Leiste unten: Prüfen-Knopf, danach Erklärung; Tippen irgendwo = weiter
+let armed=null;
+function unlisten(){if(armed){document.removeEventListener('click',armed.c,true);document.removeEventListener('keydown',armed.k,true);clearTimeout(armed.t);armed=null;}}
+function disarm(){unlisten();const b=document.getElementById('actbar');if(b)b.remove();document.body.classList.remove('hasbar','hasfb');}
+function armNext(fn){unlisten();const c=e=>{if(e.target.closest('#back'))return;e.preventDefault();e.stopPropagation();unlisten();fn();};
+  const k=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();unlisten();fn();}};
+  armed={c,k};armed.t=setTimeout(()=>{if(armed&&armed.c===c){document.addEventListener('click',c,true);document.addEventListener('keydown',k,true);}},250);}
 function renderTask(box,t,onDone,exam){
-  box.innerHTML=`<div class="prompt">${t.type==='free'?esc(t.f.q):esc(t.title)}</div><div class="tbody"></div><div class="fb" id="fb"></div><div id="act"></div>`;
-  const body=box.querySelector('.tbody'),fb=box.querySelector('#fb'),act=box.querySelector('#act');
+  disarm();
+  box.innerHTML=`<div class="prompt">${t.type==='free'?esc(t.f.q):esc(t.title)}</div><div class="tbody"></div><div id="fbin"></div>`;
+  const bar=document.createElement('div');bar.id='actbar';bar.className='actbar';bar.innerHTML='<div class="fb" id="fb"></div><div id="act"></div>';
+  document.body.appendChild(bar);document.body.classList.add('hasbar');
+  const body=box.querySelector('.tbody'),fb=bar.querySelector('#fb'),act=bar.querySelector('#act');
   const btn=(txt,fn)=>{act.innerHTML=`<button class="btn next">${txt}</button>`;act.querySelector('button').onclick=fn;};
-  const finish=(pts,max,html,cls)=>{if(exam){onDone(pts,max);return;}fb.className='fb '+(cls||(pts/max>=OK?'ok':'bad'));fb.innerHTML=html;btn('Weiter ›',()=>onDone(pts,max));};
+  const done=(pts,max)=>{disarm();onDone(pts,max);};
+  const finish=(pts,max,html,cls)=>{if(exam){done(pts,max);return;}fb.className='fb '+(cls||(pts/max>=OK?'ok':'bad'));fb.innerHTML=html;document.body.classList.add('hasfb');
+    act.innerHTML='<div class="tapnext"><span>👆 Tippe irgendwo für weiter</span><span class="go">Weiter ›</span></div>';armNext(()=>done(pts,max));};
   const headline=(pts,max)=>`${pts/max>=OK?'Gut gemacht! ✅':'Schau dir die markierten Stellen noch einmal an.'} <span class="pts">${Math.round(pts*10)/10} von ${max} Punkten</span>`;
 
   if(t.type==='sort'){
@@ -462,10 +483,10 @@ function renderTask(box,t,onDone,exam){
     body.innerHTML=`<textarea id="fa" rows="5" placeholder="Schreibe deine Antwort in Stichpunkten oder ganzen Sätzen – wie in der Probe …"></textarea>`;
     btn('Fertig – mit Musterantwort vergleichen',()=>{const v=body.querySelector('#fa').value;if(!v.trim()){toast('Schreib erst deine Antwort 🙂');return;}
       body.querySelector('#fa').disabled=true;const low=v.toLowerCase();
-      fb.className='fb plain';fb.innerHTML=`<b>Vergleiche mit der Musterantwort.</b> Hake ab, was du sinngemäß geschrieben hast – Vorschläge sind schon angehakt:<div class="checks">${t.f.p.map((p,k)=>`<label class="chk"><input type="checkbox" ${new RegExp(p[1]).test(low)?'checked':''}> ${esc(p[0])}</label>`).join('')}</div><div class="ex">Für die volle Punktzahl brauchst du ${t.f.need} von ${t.f.p.length} Punkten.</div>`;
-      btn('Bewerten ›',()=>{const n=[...fb.querySelectorAll('input:checked')].length;fb.querySelectorAll('input').forEach(x=>x.disabled=true);const pts=Math.min(n,t.f.need),max=t.f.need;
-        if(exam){onDone(pts,max);return;}
-        fb.insertAdjacentHTML('afterbegin',`<div class="${pts/max>=OK?'okt':'badt'}">${headline(pts,max)}</div>`);btn('Weiter ›',()=>onDone(pts,max));});});
+      const fbi=box.querySelector('#fbin');fbi.className='fb plain';fbi.innerHTML=`<b>Vergleiche mit der Musterantwort.</b> Hake ab, was du sinngemäß geschrieben hast – Vorschläge sind schon angehakt:<div class="checks">${t.f.p.map((p,k)=>`<label class="chk"><input type="checkbox" ${new RegExp(p[1]).test(low)?'checked':''}> ${esc(p[0])}</label>`).join('')}</div><div class="ex">Für die volle Punktzahl brauchst du ${t.f.need} von ${t.f.p.length} Punkten.</div>`;
+      fbi.scrollIntoView({behavior:'smooth',block:'start'});
+      btn('Bewerten ›',()=>{const n=[...fbi.querySelectorAll('input:checked')].length;fbi.querySelectorAll('input').forEach(x=>x.disabled=true);const pts=Math.min(n,t.f.need),max=t.f.need;
+        finish(pts,max,headline(pts,max)+`<div class="ex">Die Musterpunkte stehen oben unter deiner Antwort.</div>`);});});
   }
 }
 
@@ -479,11 +500,12 @@ function runSet(title,ids,opt={}){
     const id=ids[i],t=inst(id),c=chOf(t.ch);window.__cur=t;
     app.innerHTML=`<header><button class="btn ghost" id="back">‹ Menü</button><h1>${esc(title)}</h1></header>
     <div class="card"><div class="qhead"><span>Aufgabe ${i+1} von ${ids.length}</span><span>${c.ic} ${esc(c.n)}</span></div><div class="progress"><i style="width:${i/ids.length*100}%"></i></div><div id="task"></div></div>`;
-    $('#back').onclick=()=>{if(i===0||confirm('Übung abbrechen?'))home();};
+    $('#back').onclick=()=>{if(i===0||confirm('Übung abbrechen?')){disarm();home();}};
     renderTask($('#task'),t,(pts,max)=>{record(id,pts/max);P+=pts;M+=max;log.push({id,t,pts,max});i++;i<ids.length?show():finish();},opt.exam);
     window.scrollTo(0,0);
   }
   function finish(){
+    disarm();
     const pct=Math.round(P/M*100),sec=Math.round((Date.now()-t0)/1000);
     DB.sessions.push({d:new Date().toISOString(),m:title,p:Math.round(P*10)/10,n:M});if(DB.sessions.length>200)DB.sessions.shift();save();
     const weakT=log.filter(x=>x.pts/x.max<OK);
@@ -509,6 +531,7 @@ function startWeak(){runSet('Fehler üben',TASKS.map(t=>t.id).filter(weak));}
    ========================================================= */
 function chStat(k){const ids=TASKS.filter(t=>t.ch===k).map(t=>t.id);return{m:ids.filter(mastered).length,n:ids.length};}
 function home(){
+  disarm();
   const app=$('#app');const w=TASKS.filter(t=>weak(t.id)).length;
   app.innerHTML=`<header><h1>🏺 Geschichte-Trainer</h1></header>
   <div class="card settings"><label>Lücken ausfüllen</label>
@@ -534,6 +557,7 @@ function home(){
    LERNZETTEL je Kapitel
    ========================================================= */
 function showLearn(k){
+  disarm();
   const app=$('#app');const c=chOf(k);let h='';
   if(k==='quellen')h=`
   <div class="tip"><b>Quellen sind</b> Zeugnisse aus der Vergangenheit, auf denen unser Wissen über die Vergangenheit beruht.</div>
@@ -587,6 +611,7 @@ function showLearn(k){
    BEGRIFFE (Karteikarten) je Kapitel
    ========================================================= */
 function showCards(k){
+  disarm();
   const app=$('#app');const c=chOf(k);let deck=shuffle(CARDS[k]),i=0;
   function draw(){
     const d=deck[i];
@@ -605,6 +630,7 @@ function showCards(k){
    LERNSTAND
    ========================================================= */
 function showStats(){
+  disarm();
   const app=$('#app');const last=DB.sessions.slice(-8).reverse();
   const tname=t=>{const x=inst(t.id);return x.type==='free'?x.f.q:x.title;};
   app.innerHTML=`<header><button class="btn ghost" id="back">‹ Menü</button><h1>📊 Mein Lernstand</h1></header>
