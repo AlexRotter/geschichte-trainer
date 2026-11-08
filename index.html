@@ -165,6 +165,8 @@ body.hasfb .actbar{cursor:pointer}
 body.hasbar .wrap{padding-bottom:110px}body.hasfb .wrap{padding-bottom:58vh}
 #fbin.fb{margin-top:12px}
 .hero{border:2px solid var(--blue);background:#f2f7ff}
+.qhint{background:#f2f7ff;border-left:4px solid var(--blue);border-radius:8px;padding:10px 12px;margin:-4px 0 10px;font-size:.95rem}
+textarea::placeholder{white-space:pre-line}
 details.card summary{cursor:pointer;padding:4px 0}
 details.card .chcard{box-shadow:none;border:1px solid var(--line);margin-top:10px}
 .chsel{display:flex;flex-direction:column;gap:4px;font-size:.9rem}
@@ -236,7 +238,7 @@ const T=[
  {id:'l_fund_use',ch:'leben',type:'sort',title:'Wozu wurden die Fundstücke gebraucht? Ordne zu.',cats:[{k:'F',n:'Faustkeil'},{k:'H',n:'Harpune'},{k:'S',n:'Speerschleuder'},{k:'N',n:'Nadel'}],
   pool:P([['schneiden, schaben, hacken','F'],['Tiere zerlegen und Knochen aufbrechen','F'],['Fische fangen – Widerhaken halten die Beute','H'],['Speere weiter und kräftiger werfen – Tiere jagen','S'],['Felle zu Kleidung und Zelten zusammennähen','N']])},
  {id:'l_warum',ch:'leben',type:'free',q:'Erkläre, warum die Menschen der Altsteinzeit umherzogen.',p:[['Es gab nur ein knappes Angebot an Nahrung und Brennholz.','knapp|wenig|angebot|brennholz'],['Die Tierherden zogen auf der Suche nach Futter umher – die Menschen folgten ihnen.','herde|tiere|folg|futter'],['Sie gingen dorthin, wo es essbare Pflanzen gab.','pflanz|beere|nüsse|sammel'],['Das Umherziehen sicherte ihr Überleben.','leben|überleb|sicher']],need:3},
- {id:'l_verwertung',ch:'leben',type:'free',q:'Zähle auf, wozu die Menschen die einzelnen Teile eines erlegten Tieres (z. B. Mammut) verwendeten.',p:[['Fleisch, Innereien, Mark → Nahrung','nahrung|essen|fleisch'],['Fell → Kleidung, Zelte, Riemen, Fußlappen, Bodenbelag','kleid|zelt|fell'],['Knochen, Stoßzähne, Geweih → Werkzeuge, Waffen, Schmuck, Nadeln','werkzeug|waffe|schmuck|nadel|knochen'],['Sehnen, Därme → Schnüre, Nähgarn, Bogensehnen','schnur|schnür|garn|sehne'],['Magen, Blase → getrocknet als Behälter','behälter|beutel|gefäß'],['Fett → Körperbemalung und Nahrung','fett|bemalung|farbe']],need:4},
+ {id:'l_verwertung',ch:'leben',type:'free',q:'Mammut: Zähle auf, wozu die Menschen die einzelnen Teile des erlegten Tieres verwendeten.',hint:'So gehst du vor: Schreibe für jeden Teil des Tieres eine Zeile – erst den Teil, dann wozu er verwendet wurde. Nenne mindestens 4 Teile.<br>Beispiel: <b>Fell → Kleidung, Zelte</b>',ph:'Fell → Kleidung, Zelte\nKnochen → …\n…',p:[['Fleisch, Innereien, Mark → Nahrung','nahrung|essen|fleisch'],['Fell → Kleidung, Zelte, Riemen, Fußlappen, Bodenbelag','kleid|zelt|fell'],['Knochen, Stoßzähne, Geweih → Werkzeuge, Waffen, Schmuck, Nadeln','werkzeug|waffe|schmuck|nadel|knochen'],['Sehnen, Därme → Schnüre, Nähgarn, Bogensehnen','schnur|schnür|garn|sehne'],['Magen, Blase → getrocknet als Behälter','behälter|beutel|gefäß'],['Fett → Körperbemalung und Nahrung','fett|bemalung|farbe']],need:4},
 // ===== 2 Wohnen in der Altsteinzeit =====
  {id:'w_merkmal',ch:'wohnen',type:'sort',title:'Höhle oder Zelt? Ordne die Merkmale zu.',cats:[{k:'H',n:'Höhle'},{k:'Z',n:'Zelt'},{k:'B',n:'beide'}],
   pool:P([['ist natürlich entstanden','H'],['wird von den Menschen selbst gebaut','Z'],['besteht aus Tierfellen über Holzstangen oder Mammutknochen','Z'],['kann abgebaut und mitgenommen werden','Z'],['bleibt immer am selben Ort','H'],['gibt es vor allem im Gebirge','H'],['kann man auch im flachen Land aufstellen','Z'],['hat eine Feuerstelle für Wärme und Schutz','B'],['Menschen arbeiten dort zusammen','B'],['bietet festen Schutz vor Wind, Regen und Kälte','H']])},
@@ -540,7 +542,7 @@ function renderTask(box,t,onDone,exam){
       finish(res,pts,t.targets.length,headline(pts,t.targets.length)+`<div class="ex">${lines.join('<br>')}</div>`);});
   }
   else if(t.type==='free'){
-    body.innerHTML=`<textarea id="fa" rows="5" placeholder="Schreibe deine Antwort in Stichpunkten oder ganzen Sätzen – wie in der Probe …"></textarea>`;
+    body.innerHTML=`${t.hint?`<div class="qhint">${t.hint}</div>`:''}<textarea id="fa" rows="6" placeholder="${esc(t.ph||'Schreibe deine Antwort in Stichpunkten oder ganzen Sätzen – wie in der Probe …')}"></textarea>`;
     btn('Fertig – mit Musterantwort vergleichen',()=>{const v=body.querySelector('#fa').value;if(!v.trim()){toast('Schreib erst deine Antwort 🙂');return;}
       body.querySelector('#fa').disabled=true;const low=v.toLowerCase();const fbi=box.querySelector('#fbin');fbi.className='fb plain';
       fbi.innerHTML=`<b>Vergleiche mit der Musterantwort.</b> Hake ab, was du sinngemäß geschrieben hast – Vorschläge sind schon angehakt:<div class="checks">${t.p.map(p=>`<label class="chk"><input type="checkbox" ${new RegExp(p[1]).test(low)?'checked':''}> ${esc(p[0])}</label>`).join('')}</div><div class="ex">Für die volle Punktzahl brauchst du ${t.need} von ${t.p.length} Punkten.</div>`;
